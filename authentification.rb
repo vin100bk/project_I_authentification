@@ -1,15 +1,17 @@
-$: << File.join(File.dirname(__FILE__),"middleware")
+$: << File.dirname(__FILE__)
 
 require 'sinatra'
 require 'active_record'
-require 'my_middleware'
+
+# Middlewares
+require 'middleware/rack_session'
+
+# Database
+config_file = File.join(File.dirname(__FILE__),"db", "config_database.yml")
+ActiveRecord::Base.establish_connection(YAML.load(File.open(config_file))["authentification"])
 
 # use RackCookieSession
 use RackSession
-
-# Database
-config_file = File.join(File.dirname(__FILE__),"db","config_database.yml")
-ActiveRecord::Base.establish_connection(YAML.load(File.open(config_file))["development"])
 
 # Specify public dir
 set :public_folder, File.dirname(__FILE__) + '/www'
