@@ -100,6 +100,10 @@ describe Member do
 			subject.valid?.should be_true
 		end
 		
+		it "Should have the default value" do
+			subject.is_super_user.should be_false
+		end
+		
 	end
 
 end

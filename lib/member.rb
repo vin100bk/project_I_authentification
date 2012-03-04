@@ -19,7 +19,9 @@ class Member < ActiveRecord::Base
 	
 	# Redefine password and password_confirmation because of sha1 encryption
 	def password=(password)
-		@password = Digest::SHA1.hexdigest(password);
+		unless password.nil?
+			@password = Digest::SHA1.hexdigest(password)
+		end
 	end
 	
 	def password
@@ -27,7 +29,9 @@ class Member < ActiveRecord::Base
 	end
 	
 	def password_confirmation=(password)
-		@password_confirmation = Digest::SHA1.hexdigest(password);
+		unless password.nil?
+			@password_confirmation = Digest::SHA1.hexdigest(password)
+		end
 	end
 	
 	def password_confirmation
