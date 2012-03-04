@@ -46,7 +46,7 @@ describe Member do
 			subject.errors.messages[:login].include?("is invalid").should be_true
 		 end
 		 
-		 it "Should not be valid with a short login" do
+		 it "Should not be valid with a too short login" do
 		 	subject.login = "l"
 		 	subject.valid?
 			subject.errors.messages[:login].include?("is invalid").should be_true

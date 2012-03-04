@@ -48,7 +48,7 @@ describe Application do
 			subject.errors.messages[:name].include?("is invalid").should be_true
 		 end
 		 
-		 it "Should not be valid with a short name" do
+		 it "Should not be valid with a too short name" do
 		 	subject.name = "t"
 		 	subject.valid?
 			subject.errors.messages[:name].include?("is invalid").should be_true
