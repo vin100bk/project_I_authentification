@@ -1,8 +1,7 @@
-class Person < ActiveRecord::Base
+class Member < ActiveRecord::Base
 
 	has_many :utilisations
 	has_many :applications, :through => :utilisations
-	belongs_to :application
 	
 	# Validators
 	# Login
