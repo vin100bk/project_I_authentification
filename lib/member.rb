@@ -1,4 +1,5 @@
 require 'digest/sha1'
+require 'active_record'
 
 class Member < ActiveRecord::Base
 
