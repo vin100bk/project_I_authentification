@@ -54,6 +54,29 @@ describe Member do
 	
 	end
 	
+	describe "Check unicity informations" do
+	
+		it "Should not be valid with a no unique login" do
+			m1 = Member.new
+			m1.login = "pseudo"
+			m1.password = "pw"
+			m1.password_confirmation = "pw"
+			
+			# Have to save to check uncity
+			user_id = m1.save
+			
+			m1 = Member.new
+			m1.login = "pseudo"
+			m1.password = "pw"
+			m1.password_confirmation = "pw"
+			
+			m1.valid?
+			Member.delete(user_id)
+			m1.errors.messages[:login].include?("has already been taken").should be_true
+		end
+	
+	end
+	
 	describe "Check password" do
 	
 		subject do

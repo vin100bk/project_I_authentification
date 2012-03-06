@@ -61,6 +61,29 @@ describe Application do
 	
 	end
 	
+	describe "Check unicity informations" do
+	
+		it "Should not be valid with a no unique login" do
+			a1 = Application.new
+			a1.name = "my_app"
+			a1.url = "http://www.google.fr"
+			a1.member = Member.new
+			
+			# Have to save to check uncity
+			app_id = a1.save
+			
+			a2 = Application.new
+			a2.name = "my_app"
+			a2.url = "http://www.yahoo.fr"
+			a2.member = Member.new
+			
+			a1.valid?
+			Application.delete(app_id)
+			a1.errors.messages[:name].include?("has already been taken").should be_true
+		end
+		
+	end
+	
 	describe "Application valid" do
 		
 		subject do
