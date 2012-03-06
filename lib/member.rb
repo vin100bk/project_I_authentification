@@ -21,17 +21,13 @@ class Member < ActiveRecord::Base
 	# Redefine password and password_confirmation because of sha1 encryption
 	def password=(password)
 		unless password.nil?
-			@password = Member.encryption_password(password)
+			self[:password] = Member.encrypt_password(password)
 		end
-	end
-	
-	def password
-		@password
 	end
 	
 	def password_confirmation=(password)
 		unless password.nil?
-			@password_confirmation = Member.encryption_password(password)
+			@password_confirmation = Member.encrypt_password(password)
 		end
 	end
 	
@@ -39,8 +35,8 @@ class Member < ActiveRecord::Base
 		@password_confirmation
 	end
 	
-	def self.encryption_password(password)
-		Digest::SHA1.hexdigest(password)
+	def self.encrypt_password(password)
+		Digest::SHA1.hexdigest(password).inspect
 	end
 	
 	def self.authenticate(login, password)

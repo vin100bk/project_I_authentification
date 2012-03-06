@@ -70,16 +70,17 @@ describe Application do
 			a1.member = Member.new
 			
 			# Have to save to check uncity
-			app_id = a1.save
+			a1.save!
+			app_id = a1.id
 			
 			a2 = Application.new
 			a2.name = "my_app"
 			a2.url = "http://www.yahoo.fr"
 			a2.member = Member.new
 			
-			a1.valid?
+			a2.valid?
 			Application.delete(app_id)
-			a1.errors.messages[:name].include?("has already been taken").should be_true
+			a2.errors.messages[:name].include?("has already been taken").should be_true
 		end
 		
 	end

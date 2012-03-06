@@ -63,7 +63,8 @@ describe Member do
 			m1.password_confirmation = "pw"
 			
 			# Have to save to check uncity
-			user_id = m1.save
+			m1.save!
+			user_id = m1.id
 			
 			m1 = Member.new
 			m1.login = "pseudo"
@@ -92,7 +93,7 @@ describe Member do
 		
 		it "Should have the password hash registered" do
 			subject.password = "password"
-			subject.password.should == "5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8"
+			subject.password.should == Member.encrypt_password("password")
 		end
 		
 		it "Should not be valid with a wrong password confirmation" do
