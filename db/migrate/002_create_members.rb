@@ -3,7 +3,6 @@ class CreateMembers < ActiveRecord::Migration
 		create_table :members do |t|
 			t.string  :login
 			t.string  :password
-			t.boolean  :is_super_user, :default => false
 		end
 	end
 
