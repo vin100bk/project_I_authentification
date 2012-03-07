@@ -110,6 +110,32 @@ describe Member do
 	
 	end
 	
+	describe "Authentication" do
+	
+		it "Should return the rigth hash" do
+			Member.encrypt_password('password') == Digest::SHA1.hexdigest('password')
+		end
+	
+		it "Should not authenticate with success" do
+			m = double(Member)
+			m.stub(:login).and_return('Vin100')
+			m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')	# Password
+			
+			Member.stub(:find_by_login).with('Vin100').and_return(m)
+			Member.authenticate('Vin100', 'password').should be_false
+		end
+		
+		it "Should authenticate with success" do
+			m = double(Member)
+			m.stub(:login).and_return('Vin100')
+			m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')	# Password
+			
+			Member.stub(:find_by_login).with('Vin100').and_return(m)
+			Member.authenticate('Vin100', 'Password').should be_true
+		end
+	
+	end
+	
 	describe "Member valid" do
 		
 		subject do

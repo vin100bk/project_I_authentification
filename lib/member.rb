@@ -36,12 +36,12 @@ class Member < ActiveRecord::Base
 	end
 	
 	def self.encrypt_password(password)
-		Digest::SHA1.hexdigest(password).inspect
+		Digest::SHA1.hexdigest(password).inspect[1..40]
 	end
 	
 	def self.authenticate(login, password)
 		m = Member.find_by_login(login)
-		!m.nil? && m.password == Member.encryption_password(password)
+		!m.nil? && m.password == Member.encrypt_password(password)
 	end
 
 end
