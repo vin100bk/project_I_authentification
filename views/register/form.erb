@@ -9,7 +9,19 @@
 
 	<h1>Service d'authenfication</h1>
 	
-	<p>Merci de remplir le formulaire ci-dessous pour vous inscrire au service d'authentification.</p>
+	<% if @error_register.nil? %>
+		<p class="info">Merci de remplir le formulaire ci-dessous pour vous inscrire au service d'authentification.</p>
+	<% else %>
+		<div class="error">
+			<p>Erreur lors de l'inscription, veuillez vérifier vos informations.</p>
+			
+			<ul>
+				<% @error_register.each do |champ, msgs| %>
+					<li><strong><%= champ %></strong> : <%= msgs.join(', ') %></li>
+				<% end %>
+			</ul>
+		</div>
+	<% end %>
 	
 	<div id="inscription">
 		<h2>Inscription</h2>
@@ -22,6 +34,10 @@
 			<div class="field">
 				<label for="label_password">Mot de passe :</label>
 				<input type="password" name="password" id="label_password" placeholder="Password" required />
+			</div>
+			<div class="field">
+				<label for="label_password">Confirmation du mot de passe :</label>
+				<input type="password" name="password_confirmation" id="label_password" required />
 			</div>
 			<div class="field_button">
 				<input type="submit" value="S'inscrire" />

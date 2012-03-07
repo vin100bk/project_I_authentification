@@ -9,9 +9,9 @@
 
 	<h1>Service d'authenfication</h1>
 	
-	<p>Merci de remplir le formulaire ci-dessous pour vous connecter au service d'authentification.</p>
-	
-	<% unless @error_session_message.nil? %>
+	<% if @error_session_message.nil? %>
+		<p class="info">Merci de remplir le formulaire ci-dessous pour vous connecter au service d'authentification.</p>
+	<% else %>
 		<p class="error">Erreur lors de la connexion. 
 		<% if @error_session_message == :session_not_exists %>
 			Le compte avec l'identifiant <strong><%= @login %></strong> n'existe pas. <a href="/register">Cliquez ici pour vous inscrire</a>.
