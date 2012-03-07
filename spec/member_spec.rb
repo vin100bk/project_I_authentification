@@ -89,6 +89,7 @@ describe Member do
 		it "Should call the encryption sha1" do
 			Digest::SHA1.should_receive(:hexdigest).with("password").and_return("5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8")
 			subject.password = "password"
+			subject.password.should == '5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8'
 		end
 		
 		it "Should have the password hash registered" do
@@ -148,10 +149,6 @@ describe Member do
 		
 		it "Should be valid" do
 			subject.valid?.should be_true
-		end
-		
-		it "Should have the default value" do
-			subject.is_super_user.should be_false
 		end
 		
 	end

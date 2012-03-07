@@ -99,56 +99,53 @@ describe 'The Authentification App' do
 		before(:each) do
 			@params = {
 				'login' => 'Vin100',
-				'password' => 'Password'
+				'password' => 'Password',
+				'password_confirmation' => 'Password'
 			}
 		end
-	
-		it "Should call authenticate method" do
-			Member.should_receive(:authenticate).with('Vin100', 'Password').and_return(false)
-			post '/session/new', @params
-		end
 		
-		it "Should not authenticate with success" do
-			post '/session/new', @params
-			last_response.should be_ok
-		end
-		
-		it "Session should not exists" do
-			post '/session/new', @params
-			last_response.body.include?('Le compte avec l\'identifiant').should be_true
-		end
-		
-		it "Session should exists but with a wrong password" do
-			m = double(Member)
-			m.stub(:login).and_return('Vin100')
-			m.stub(:password).and_return('14ca9f63103e4c9ac356797bb6d1c76a51e91071')	# Value : My_password
+		# Delete the member saved if existing
+		after(:each) do
+			m = Member.find_by_login('Vin100')
 			
-			Member.stub(:find_by_login).with('Vin100').and_return(m)
-			
-			post '/session/new', @params
-			last_response.body.include?('Le mot de passe ne correspond pas &agrave; l\'identifiant').should be_true
+			unless m.nil?
+				Member.delete(m.id)
+			end
 		end
 		
-		it "Should authenticate with success" do
-			m = double(Member)
-			m.stub(:login).and_return('Vin100')
-			m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')
+		it "Should not register with success (ugly login)" do
+			@params['login'] = 'vin@@100'
 			
-			Member.stub(:find_by_login).with('Vin100').and_return(m)
-			post '/session/new', @params
+			post '/register/new', @params
+			last_response.should be_ok	# If there is not redirection, error while registring
+		end
+		
+		it "Should not register with success (login too short)" do
+			@params['login'] = 'a'
+			
+			post '/register/new', @params
+			last_response.should be_ok	# If there is not redirection, error while registring
+		end
+		
+		it "Should not register with success (password confirmation)" do
+			@params['password_confirmation'] = 'other_password'
+			
+			post '/register/new', @params
+			last_response.should be_ok	# If there is not redirection, error while registring
+		end
+		
+		# Other tests available for validators in member_spec.rb ...
+		
+		it "Should register with success" do
+			post '/register/new', @params
 			
 			# If redirect : authentification sucessful
 			last_response.should be_redirect
 			follow_redirect!
 		end
 		
-		it "Should register the login into session with a successful authentification" do
-			m = double(Member)
-			m.stub(:login).and_return('Vin100')
-			m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')
-			
-			Member.stub(:find_by_login).with('Vin100').and_return(m)
-			post '/session/new', @params
+		it "Should register the login into session with a successful registration" do
+			post '/register/new', @params
 			
 			follow_redirect!
 			last_request.env['rack.session']['current_user'].should == 'Vin100'

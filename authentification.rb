@@ -56,7 +56,21 @@ post '/register/new' do
 	if current_user
 		redirect '/'
 	else
+		m = Member.new
+		m.login = params['login']
+		m.password = params['password']
+		m.password_confirmation = params['password_confirmation']
 		
+		if m.valid?
+			# Le membre valide
+			m.save
+			session[:current_user] = m.login
+			redirect '/'
+		else
+			# Membre non valide
+			@error_register = m.errors.messages
+			erb :"register/form"
+		end
 	end
 end
 
