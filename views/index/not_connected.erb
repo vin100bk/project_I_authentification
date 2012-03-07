@@ -10,45 +10,12 @@
 	<h1>Service d'authenfication</h1>
 	
 	<p>Bonjour, vous n'êtes pas connecté.<br />
-	Pour profiter de ce service merci de vous connecter si vous possédez un compte, de vous inscrire dans le cas contraire.</p>
+	Pour profiter pleinement de ce service merci de vous connecter si vous possédez un compte ou de vous inscrire dans le cas contraire.</p>
 	
-	<div id="connexion">
-		<h2>Connexion</h2>
-		
-		<form method="post" action="">
-			<div class="field">
-				<label for="label_login">Identifiant :</label>
-				<input type="text" name="login" id="label_login" placeholder="Login" required />
-			</div>
-			<div class="field">
-				<label for="label_password">Mot de passe :</label>
-				<input type="password" name="password" id="label_password" placeholder="Password" required />
-			</div>
-			<div class="field_button">
-				<input type="submit" value="Se connecter" />
-			</div>
-		</form>
-	</div>
-	
-	<div id="inscription">
-		<h2>Inscription</h2>
-		
-		<form method="post" action="">
-			<div class="field">
-				<label for="label_login">Identifiant :</label>
-				<input type="text" name="login" id="label_login" placeholder="Login" required />
-			</div>
-			<div class="field">
-				<label for="label_password">Mot de passe :</label>
-				<input type="password" name="password" id="label_password" placeholder="Password" required />
-			</div>
-			<div class="field_button">
-				<input type="submit" value="S'inscrire" />
-			</div>
-		</form>
-	</div>
-	
-	<div class="clear"></div>
+	<ul>
+		<li><a href="/session">Connexion</a></li>
+		<li><a href="/register">Inscription</a></li>
+	</ul>
 	
 </body>
 </html>
