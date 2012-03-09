@@ -9,8 +9,7 @@ require 'lib/application'
 require 'lib/token'
 
 # Database
-config_file = File.join(File.dirname(__FILE__),"db", "config_database.yml")
-ActiveRecord::Base.establish_connection(YAML.load(File.open(config_file))["authentification"])
+ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :database => File.join(File.dirname(__FILE__), 'db', 'authentification.sqlite3'))
 
 # Specify public dir
 set :public_folder, File.dirname(__FILE__) + '/www'

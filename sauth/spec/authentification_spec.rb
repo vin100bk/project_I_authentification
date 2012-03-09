@@ -83,10 +83,6 @@ describe 'The Authentification App' do
 			post '/session/new', @params
 			
 			# If redirect : authentification sucessful
-			myFile = File.open("test.html", "w")
-			myFile.write (last_response.body)
-			myFile.close
-
 			last_response.should be_redirect
 			follow_redirect!
 			last_request.path.should == '/'
