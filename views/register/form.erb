@@ -12,32 +12,27 @@
 	<% if @error_register.nil? %>
 		<p class="info">Merci de remplir le formulaire ci-dessous pour vous inscrire au service d'authentification.</p>
 	<% else %>
-		<div class="error">
-			<p>Erreur lors de l'inscription, veuillez vérifier vos informations.</p>
-			
-			<ul>
-				<% @error_register.each do |champ, msgs| %>
-					<li><strong><%= champ %></strong> : <%= msgs.join(', ') %></li>
-				<% end %>
-			</ul>
-		</div>
+		<p class="error">Erreur lors de l'inscription, veuillez vérifier vos informations.</p>
 	<% end %>
 	
 	<div id="inscription">
 		<h2>Inscription</h2>
 		
 		<form method="post" action="/register/new">
-			<div class="field">
+			<div class="field<%= is_field_error(@error_register, :login) %>">
+				<%= get_field_error_message(@error_register, :login) %>
 				<label for="label_login">Identifiant :</label>
-				<input type="text" name="login" id="label_login" placeholder="Login" required />
+				<input type="text" name="login" id="label_login" value="<%= get_field_value(:login) %>" placeholder="Login" required />
 			</div>
-			<div class="field">
+			<div class="field<%= is_field_error(@error_register, :password) %>">
+				<%= get_field_error_message(@error_register, :password) %>
 				<label for="label_password">Mot de passe :</label>
-				<input type="password" name="password" id="label_password" placeholder="Password" required />
+				<input type="password" name="password" id="label_password" value="<%= get_field_value(:password) %>" placeholder="Password" required />
 			</div>
-			<div class="field">
+			<div class="field<%= is_field_error(@error_register, :password_confirmation) %>">
+				<%= get_field_error_message(@error_register, :password_confirmation) %>
 				<label for="label_password">Confirmation du mot de passe :</label>
-				<input type="password" name="password_confirmation" id="label_password" required />
+				<input type="password" name="password_confirmation" value="<%= get_field_value(:password_confirmation) %>" id="label_password" required />
 			</div>
 			<div class="field_button">
 				<input type="submit" value="S'inscrire" />

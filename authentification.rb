@@ -51,6 +51,31 @@ helpers do
 		session[:current_user] = nil
 		response.set_cookie('token', {:value => '', :expires => Time.at(0), :path => '/'})
 	end
+	
+	# Views helpers
+	def get_field_value(field_name)
+		if !params[field_name].nil?
+			params[field_name]
+		end
+	end
+	
+	def is_field_error(error_messages, field_name)
+		if !error_messages.nil? && !error_messages[field_name].nil?
+			' field_error'
+		end
+	end
+	
+	def get_field_error_message(error_messages, field_name)
+		if !error_messages.nil? && !error_messages[field_name].nil?
+			error_msg = '<div class="error_messages"><p>Errors appears in ' + field_name.to_s + ' :</p><ul>'
+				error_messages[field_name].each do |msg|
+					error_msg += '<li>' + msg + '</li>'
+				end
+			error_msg += '</ul></div>'
+			
+			error_msg
+		end
+	end
 
 end
 
