@@ -13,6 +13,8 @@ ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :database => File
 
 # Specify public dir
 set :public_folder, File.dirname(__FILE__) + '/www'
+# Specify the port application
+set :port, 9090
 
 enable :sessions
 
@@ -29,7 +31,7 @@ helpers do
 				logout
 			end
 		end
-		
+
 		!session[:current_user].nil?
 	end
 	
@@ -55,13 +57,35 @@ helpers do
 		current_user = Member.find_by_login(user.login)
 		current_user.token = token
 		current_user.save
-		# Cookie available 1 week
+		# Cookie available for 1 week
 		response.set_cookie('token', {:value => token, :expires => Time.parse(Date.today.next_day(7).to_s), :path => '/'})
 	end
 	
 	def logout
 		session[:current_user] = nil
 		response.set_cookie('token', {:value => '', :expires => Time.at(0), :path => '/'})
+	end
+	
+	def get_redirect_url
+		if !params['app_name'].nil?
+		app = Application.find_by_name(params['app_name'])
+		
+		print "\n\n" + params.inspect + "\n\n"
+		
+			if app.nil?
+				# App does not exist
+				redirect_url = '/'
+				print "\n\nTEST1" + redirect_url.inspect + "\n\n"
+			else
+				# App exists
+				redirect_url = app.url + params['origin'] + '?login=' + current_username + '&token=' + Digest::SHA1.hexdigest(app.token + current_username)
+			end
+		else
+			print "\n\nTEST2" + redirect_url.inspect + "\n\n"
+			redirect_url = '/'
+		end
+		
+		redirect_url
 	end
 	
 	# Views helpers
@@ -103,7 +127,7 @@ get '/' do
 end
 
 # Register form
-get '/register/new' do
+get '/register/new/?' do
 	if is_connected
 		redirect '/'
 	else
@@ -112,7 +136,7 @@ get '/register/new' do
 end
 
 # Register validation
-post '/register/new' do
+post '/register/new/?' do
 	if is_connected
 		redirect '/'
 	else
@@ -135,25 +159,26 @@ post '/register/new' do
 end
 
 # Authentification form
-get '/session/new' do
+get '/?:app_name?/session/new/?' do
 	if is_connected
-		redirect '/'
+		redirect get_redirect_url % [current_username]
 	else
 		erb :"session/form"
 	end
 end
 
 # Authentification validation
-post '/session/new' do
+post '/?:app_name?/session/new/?' do
+
 	if is_connected
-		redirect '/'
+		redirect get_redirect_url % [current_username]
 	else
 		m = Member.find_by_login(params['login'])
 		
 		if Member.authenticate(params['login'], params['password'])
 			# Authentification succeded
 			login(m)
-			redirect '/'
+			redirect get_redirect_url % [current_username]
 		else
 			# Authentification failed
 			@login = params['login']
@@ -170,7 +195,7 @@ post '/session/new' do
 end
 
 # Register application form
-get '/application/new' do
+get '/application/new/?' do
 	if !is_connected
 		redirect '/'
 	else
@@ -179,13 +204,14 @@ get '/application/new' do
 end
 
 # Register an application
-post '/application/new' do
+post '/application/new/?' do
 	if !is_connected
 		redirect '/'
 	else
 		a = Application.new
 		a.name = params['name']
 		a.url = params['url']
+		a.token = Token.generate
 		a.member = current_user
 		
 		if a.valid?
@@ -202,7 +228,7 @@ post '/application/new' do
 end
 
 # Delete an application
-get '/application/destroy/:app_id' do
+get '/application/destroy/:app_id/?' do
 	if !is_connected
 		redirect '/'
 	else
@@ -220,7 +246,7 @@ get '/application/destroy/:app_id' do
 end
 
 # Logout
-get '/session/destroy' do
+get '/session/destroy/?' do
 	logout
 	redirect '/'
 end

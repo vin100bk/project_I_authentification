@@ -14,7 +14,7 @@ class Application < ActiveRecord::Base
 	
 	# Url
 	validates :url, :presence => true
-	validates :url, :format => { :with => /^https?:\/\/[a-z0-9._\/-]+\.[a-z]{2,3}/i, :on => :create }
+	validates :url, :format => { :with => /^https?:\/\/[a-z0-9._\/-]+/i, :on => :create }
 	
 	# Manager_id
 	validates :member, :presence => true

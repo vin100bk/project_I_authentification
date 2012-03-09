@@ -40,7 +40,7 @@ class Member < ActiveRecord::Base
 	end
 	
 	def self.encrypt_password(password)
-		Digest::SHA1.hexdigest(password).inspect[1..40]
+		Digest::SHA1.hexdigest(password).inspect[1..40]	# Debug
 	end
 	
 	def self.authenticate(login, password)
