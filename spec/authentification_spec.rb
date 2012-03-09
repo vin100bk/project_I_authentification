@@ -71,6 +71,9 @@ describe 'The Authentification App' do
 			m = double(Member)
 			m.stub(:login).and_return('Vin100')
 			m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')
+			m.stub(:token=)
+			
+			m.should_receive(:save)
 			
 			Member.stub(:find_by_login).with('Vin100').and_return(m)
 			post '/session/new', @params
@@ -85,12 +88,30 @@ describe 'The Authentification App' do
 			m = double(Member)
 			m.stub(:login).and_return('Vin100')
 			m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')
+			m.stub(:token=)
+			m.stub(:save)
 			
 			Member.stub(:find_by_login).with('Vin100').and_return(m)
 			post '/session/new', @params
 			
 			follow_redirect!
-			last_request.env['rack.session']['current_user'].should == 'Vin100'
+			last_request.env['rack.session']['current_user'][:login].should == 'Vin100'
+		end
+		
+		it "Should register a token into a cookie after a successful authentification" do
+			m = double(Member)
+			m.stub(:login).and_return('Vin100')
+			m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')
+			m.stub(:token=).and_return('random_token')
+			m.stub(:save)
+			
+			Member.stub(:find_by_login).with('Vin100').and_return(m)
+			Token.stub(:generate).and_return('random_token')
+			post '/session/new', @params
+			
+			follow_redirect!
+			last_request.cookies['token'].nil?.should be_false
+			last_request.cookies['token'].should == 'random_token'
 		end
 	
 	end
@@ -150,7 +171,7 @@ describe 'The Authentification App' do
 			post '/register/new', @params
 			
 			follow_redirect!
-			last_request.env['rack.session']['current_user'].should == 'Vin100'
+			last_request.env['rack.session']['current_user'][:login].should == 'Vin100'
 		end
 		
 	end

@@ -1,9 +1,11 @@
 $: << File.dirname(__FILE__)
 
 require 'sinatra'
+require 'digest/sha1'
 
 # Libs
 require 'lib/member'
+require 'lib/token'
 
 # Database
 config_file = File.join(File.dirname(__FILE__),"db", "config_database.yml")
@@ -16,21 +18,51 @@ enable :sessions
 
 helpers do
 	def is_connected
+		if session[:current_user].nil? && !request.cookies['token'].nil?
+			user = Member.find_by_token(request.cookies['token'])
+			
+			if !user.nil?
+				# Token available
+				login(user)
+			else
+				# Wrong token
+				logout
+			end
+		end
+		
 		!session[:current_user].nil?
 	end
 	
 	def login(user)
-		session[:current_user] = user.login
+		session[:current_user] = {
+			:login => user.login
+		}
+		
+		token = Token.generate
+		# Update token in database
+		current_user = Member.find_by_login(user.login)
+		current_user.token = token
+		current_user.save
+		# Cookie available 1 week
+		response.set_cookie('token', {:value => token, :expires => Time.parse(Date.today.next_day(7).to_s), :path => '/'})
 	end
+	
+	def logout
+		session[:current_user] = nil
+		response.set_cookie('token', {:value => '', :expires => Time.at(0), :path => '/'})
+	end
+
 end
 
 # Index
-get '/' do	
+get '/' do
 	if is_connected
 		erb :"index/connected"
 	else
 		erb :"index/not_connected"
 	end
+	
+	#puts "\n\n" + request.cookies['token'].inspect + "\n\n"
 end
 
 # Register form
@@ -39,15 +71,6 @@ get '/register' do
 		redirect '/'
 	else
 		erb :"register/form"
-	end
-end
-
-# Authentification form
-get '/session' do
-	if is_connected
-		redirect '/'
-	else
-		erb :"session/form"
 	end
 end
 
@@ -71,6 +94,15 @@ post '/register/new' do
 			@error_register = m.errors.messages
 			erb :"register/form"
 		end
+	end
+end
+
+# Authentification form
+get '/session' do
+	if is_connected
+		redirect '/'
+	else
+		erb :"session/form"
 	end
 end
 
@@ -98,4 +130,9 @@ post '/session/new' do
 			erb :"session/form"
 		end
 	end
+end
+
+get '/session/destroy' do
+	logout
+	redirect '/'
 end
