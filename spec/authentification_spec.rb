@@ -13,7 +13,7 @@ describe 'The Authentification App' do
 		Sinatra::Application
 	end
 	
-	describe "Available get pages" do
+	describe "Check available get pages" do
 
 		it "Index" do
 			get '/'
@@ -32,9 +32,9 @@ describe 'The Authentification App' do
 		
 	end
 	
-	describe "Authentification" do
+	describe "Check authentification" do
 	
-		before(:each) do
+		before do
 			@params = {
 				'login' => 'Vin100',
 				'password' => 'Password'
@@ -42,13 +42,13 @@ describe 'The Authentification App' do
 		end
 	
 		it "Should call authenticate method" do
-			Member.should_receive(:authenticate).with('Vin100', 'Password').and_return(false)
+			Member.should_receive(:authenticate).with('Vin100', 'Password')
 			post '/session/new', @params
 		end
 		
 		it "Should not authenticate with success" do
 			post '/session/new', @params
-			last_response.should be_ok
+			last_response.should be_ok	# If there is not redirection, authenticate failed
 		end
 		
 		it "Session should not exists" do
@@ -78,6 +78,7 @@ describe 'The Authentification App' do
 			# If redirect : authentification sucessful
 			last_response.should be_redirect
 			follow_redirect!
+			last_request.path.should == '/'
 		end
 		
 		it "Should register the login into session with a successful authentification" do
@@ -94,7 +95,7 @@ describe 'The Authentification App' do
 	
 	end
 	
-	describe "Registration" do
+	describe "Check registration" do
 		
 		before(:each) do
 			@params = {
@@ -142,6 +143,7 @@ describe 'The Authentification App' do
 			# If redirect : authentification sucessful
 			last_response.should be_redirect
 			follow_redirect!
+			last_request.path.should == '/'
 		end
 		
 		it "Should register the login into session with a successful registration" do

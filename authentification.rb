@@ -14,28 +14,28 @@ set :public_folder, File.dirname(__FILE__) + '/www'
 
 enable :sessions
 
-helpers do 
-  def current_user
-    session[:current_user]
-  end
+helpers do
+	def is_connected
+		!session[:current_user].nil?
+	end
 	
-  def disconnect
-    session[:current_user] = nil
-  end
+	def login(user)
+		session[:current_user] = user.login
+	end
 end
 
 # Index
 get '/' do	
-	if session[:current_user].nil?
-		erb :"index/not_connected"
-	else
+	if is_connected
 		erb :"index/connected"
+	else
+		erb :"index/not_connected"
 	end
 end
 
 # Register form
 get '/register' do
-	if current_user
+	if is_connected
 		redirect '/'
 	else
 		erb :"register/form"
@@ -44,7 +44,7 @@ end
 
 # Authentification form
 get '/session' do
-	if current_user
+	if is_connected
 		redirect '/'
 	else
 		erb :"session/form"
@@ -53,7 +53,7 @@ end
 
 # Register validation
 post '/register/new' do
-	if current_user
+	if is_connected
 		redirect '/'
 	else
 		m = Member.new
@@ -64,7 +64,7 @@ post '/register/new' do
 		if m.valid?
 			# Le membre valide
 			m.save
-			session[:current_user] = m.login
+			login(m)
 			redirect '/'
 		else
 			# Membre non valide
@@ -76,16 +76,15 @@ end
 
 # Authentification validation
 post '/session/new' do
-	if current_user
+	if is_connected
 		redirect '/'
 	else
 		m = Member.find_by_login(params['login'])
 		
 		if Member.authenticate(params['login'], params['password'])
 			# Authentification succeded
-			session[:current_user] = m.login
+			login(m)
 			redirect '/'
-			# Il faut ajouter le cookie : token ?
 		else
 			# Authentification failed
 			@login = params['login']
