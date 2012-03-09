@@ -24,5 +24,9 @@ class Application < ActiveRecord::Base
 			self[:name] = name
 		end
 	end
+	
+	def self.get_applications(username)
+		Application.find_all_by_member_id(Member.find_by_login(username))
+	end
 
 end

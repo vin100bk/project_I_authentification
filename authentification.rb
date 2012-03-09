@@ -5,6 +5,7 @@ require 'digest/sha1'
 
 # Libs
 require 'lib/member'
+require 'lib/application'
 require 'lib/token'
 
 # Database
@@ -33,10 +34,22 @@ helpers do
 		!session[:current_user].nil?
 	end
 	
+	def current_user
+		Member.find_by_login(current_username)
+	end
+	
+	def current_username
+		session[:current_user]
+	end
+	
+	def flash
+		flash = session[:flash]
+		session[:flash] = nil
+		flash
+	end
+	
 	def login(user)
-		session[:current_user] = {
-			:login => user.login
-		}
+		session[:current_user] = user.login
 		
 		token = Token.generate
 		# Update token in database
@@ -82,16 +95,16 @@ end
 # Index
 get '/' do
 	if is_connected
+		@flash = flash
+		@user_applications = Application.get_applications(current_username)
 		erb :"index/connected"
 	else
 		erb :"index/not_connected"
 	end
-	
-	#puts "\n\n" + request.cookies['token'].inspect + "\n\n"
 end
 
 # Register form
-get '/register' do
+get '/register/new' do
 	if is_connected
 		redirect '/'
 	else
@@ -123,7 +136,7 @@ post '/register/new' do
 end
 
 # Authentification form
-get '/session' do
+get '/session/new' do
 	if is_connected
 		redirect '/'
 	else
@@ -157,6 +170,57 @@ post '/session/new' do
 	end
 end
 
+# Register application form
+get '/application/new' do
+	if !is_connected
+		redirect '/'
+	else
+		erb :"application/form"
+	end
+end
+
+# Register an application
+post '/application/new' do
+	if !is_connected
+		redirect '/'
+	else
+		a = Application.new
+		a.name = params['name']
+		a.url = params['url']
+		a.member = current_user
+		
+		if a.valid?
+			# Valid application
+			a.save
+			session[:flash] = 'Your application has been added with succes.'
+			redirect '/'
+		else
+			# No valid application
+			@error_registration_application = a.errors.messages
+			erb :"application/form"
+		end
+	end
+end
+
+# Delete an application
+get '/application/destroy/:app_id' do
+	if !is_connected
+		redirect '/'
+	else
+		a = Application.find_by_id(params[:app_id])
+		
+		if Application.delete(params[:app_id]) == 1
+			session[:flash] = 'The application has been deleted with success.'
+			redirect '/'
+		else
+			# Unknown application
+			session[:flash] = 'The application you want to delete does not exist.'
+			redirect '/'
+		end
+	end
+end
+
+# Logout
 get '/session/destroy' do
 	logout
 	redirect '/'

@@ -21,13 +21,18 @@ describe 'The Authentification App' do
 		end 
 		
 		it "Register form" do
-			get '/register'
+			get '/register/new'
 			last_response.should be_ok
 		end
 		
 		it "Connexion form" do
-			get '/session'
+			get '/session/new'
 			last_response.should be_ok
+		end
+		
+		it "Registration application form" do
+			get '/application/new'
+			last_response.should be_redirect
 		end
 		
 	end
@@ -39,10 +44,16 @@ describe 'The Authentification App' do
 				'login' => 'Vin100',
 				'password' => 'Password'
 			}
+			
+			@m = double(Member)
+			@m.stub(:login).and_return('Vin100')
+			@m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')
+			@m.stub(:token=).and_return('random_token')
+			@m.stub(:save)
 		end
 	
 		it "Should call authenticate method" do
-			Member.should_receive(:authenticate).with('Vin100', 'Password')
+			Member.should_receive(:authenticate).at_least(1).with('Vin100', 'Password')
 			post '/session/new', @params
 		end
 		
@@ -61,52 +72,37 @@ describe 'The Authentification App' do
 			m.stub(:login).and_return('Vin100')
 			m.stub(:password).and_return('14ca9f63103e4c9ac356797bb6d1c76a51e91071')	# Value : My_password
 			
-			Member.stub(:find_by_login).with('Vin100').and_return(m)
+			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(m)
 			
 			post '/session/new', @params
 			last_response.body.include?('Le mot de passe ne correspond pas &agrave; l\'identifiant').should be_true
 		end
 		
 		it "Should authenticate with success" do
-			m = double(Member)
-			m.stub(:login).and_return('Vin100')
-			m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')
-			m.stub(:token=)
-			
-			m.should_receive(:save)
-			
-			Member.stub(:find_by_login).with('Vin100').and_return(m)
+			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(@m)
 			post '/session/new', @params
 			
 			# If redirect : authentification sucessful
+			myFile = File.open("test.html", "w")
+			myFile.write (last_response.body)
+			myFile.close
+
 			last_response.should be_redirect
 			follow_redirect!
 			last_request.path.should == '/'
 		end
 		
 		it "Should register the login into session with a successful authentification" do
-			m = double(Member)
-			m.stub(:login).and_return('Vin100')
-			m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')
-			m.stub(:token=)
-			m.stub(:save)
-			
-			Member.stub(:find_by_login).with('Vin100').and_return(m)
+			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(@m)
 			post '/session/new', @params
 			
 			follow_redirect!
-			last_request.env['rack.session']['current_user'][:login].should == 'Vin100'
+			last_request.env['rack.session']['current_user'].should == 'Vin100'
 		end
 		
 		it "Should register a token into a cookie after a successful authentification" do
-			m = double(Member)
-			m.stub(:login).and_return('Vin100')
-			m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')
-			m.stub(:token=).and_return('random_token')
-			m.stub(:save)
-			
-			Member.stub(:find_by_login).with('Vin100').and_return(m)
-			Token.stub(:generate).and_return('random_token')
+			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(@m)
+			Token.should_receive(:generate).and_return('random_token')
 			post '/session/new', @params
 			
 			follow_redirect!
@@ -171,7 +167,16 @@ describe 'The Authentification App' do
 			post '/register/new', @params
 			
 			follow_redirect!
-			last_request.env['rack.session']['current_user'][:login].should == 'Vin100'
+			last_request.env['rack.session']['current_user'].should == 'Vin100'
+		end
+		
+		it "Should register a token into a cookie after a successful registration" do
+			Token.should_receive(:generate).and_return('random_token')
+			post '/register/new', @params
+			
+			follow_redirect!
+			last_request.cookies['token'].nil?.should be_false
+			last_request.cookies['token'].should == 'random_token'
 		end
 		
 	end

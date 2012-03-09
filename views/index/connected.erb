@@ -5,7 +5,33 @@
 </head>
 <body>
 
-Test
+	<h1>Service d'authenfication</h1>
+	
+	<% unless @flash.nil? %>
+		<p class="flash_msg"><%= @flash %></p>
+	<% end %>
+	
+	<p>Welcome <strong><%= current_username %></strong>. This is your account page configuration. <a href="session/destroy">Logout</a></p>
+	
+	<div id="applications_used">
+		<h2>Applications which use your account</h2>
+	</div>
+	
+	<div id="applications_added">
+		<h2>Your applications</h2>
+		
+		<% if @user_applications.empty? %>
+			<p class="msg1">No applications registered</p>
+		<% else %>
+			<ul>
+				<% @user_applications.each do |app| %>
+					<li><span><a href="/application/destroy/<%= app.id %>" onclick="return(confirm('Do you want to delete the application <%= app.name %> ?'));">Delete</a></span><a href="<%= app.url %>"><%= app.name %></a></li>
+				<% end %>
+			</ul>	
+		<% end %>
+		
+		<p class="msg2"><a href="/application/new">Add an application</a></p>
+	</div>
 
 </body>
 </html>

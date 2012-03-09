@@ -85,16 +85,15 @@ describe Member do
 			
 			# Have to save to check uncity
 			m1.save!
-			user_id = m1.id
 			
-			m1 = Member.new
-			m1.login = "pseudo"
-			m1.password = "pw"
-			m1.password_confirmation = "pw"
+			m2 = Member.new
+			m2.login = "pseudo"
+			m2.password = "pw"
+			m2.password_confirmation = "pw"
 			
-			m1.valid?
-			Member.delete(user_id)
-			m1.errors.messages[:login].include?("has already been taken").should be_true
+			m2.valid?
+			Member.delete(m1.id)
+			m2.errors.messages[:login].include?("has already been taken").should be_true
 		end
 	
 	end
@@ -140,12 +139,12 @@ describe Member do
 		end
 	
 		it "Should not authenticate with success" do
-			Member.stub(:find_by_login).with('Vin100').and_return(@m)
+			Member.should_receive(:find_by_login).with('Vin100').and_return(@m)
 			Member.authenticate('Vin100', 'password').should be_false
 		end
 		
 		it "Should authenticate with success" do
-			Member.stub(:find_by_login).with('Vin100').and_return(@m)
+			Member.should_receive(:find_by_login).with('Vin100').and_return(@m)
 			Member.authenticate('Vin100', 'Password').should be_true
 		end
 	

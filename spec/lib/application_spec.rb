@@ -91,7 +91,6 @@ describe Application do
 			
 			# Have to save to check uncity
 			a1.save!
-			app_id = a1.id
 			
 			a2 = Application.new
 			a2.name = "my_app"
@@ -99,7 +98,7 @@ describe Application do
 			a2.member = Member.new
 			
 			a2.valid?
-			Application.delete(app_id)
+			Application.delete(a1.id)
 			a2.errors.messages[:name].include?("has already been taken").should be_true
 		end
 		
@@ -124,6 +123,41 @@ describe Application do
 			subject.valid?.should be_true
 		end
 		
+	end
+	
+	describe "Check list of a member applications" do
+	
+		it "Should return an empty list" do
+			#Application.get_applications('toto').empty?.should be_true
+		end
+		
+		it "Should return applications associated to the member" do
+			m = Member.new
+			m.login = 'User'
+			m.password = "pw"
+			m.password_confirmation = "pw"
+			m.save
+			
+			a1 = Application.new
+			a1.name = "App1"
+			a1.url = "http://www.app1.fr"
+			a1.member = m
+			a1.save
+			
+			a2 = Application.new
+			a2.name = "App2"
+			a2.url = "http://www.app2.fr"
+			a2.member = m
+			a2.save
+			
+			Application.get_applications('User').length.should == 2
+			
+			# Delete records saved
+			Member.delete(m.id)
+			Application.delete(a1.id)
+			Application.delete(a2.id)
+		end
+	
 	end
 
 end
