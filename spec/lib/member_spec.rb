@@ -1,11 +1,11 @@
-$: << File.join(File.dirname(__FILE__), '..')
+$: << File.join(File.dirname(__FILE__), '..', '..')
 
 require 'authentification'
 require 'lib/member'
 
 describe Member do
 
-	describe "Missing informations" do
+	describe "Check a member with missing informations" do
 	
 		it "An empty member should not be valid" do
 			subject.valid?.should be_false
@@ -28,7 +28,38 @@ describe Member do
 	
 	end
 	
-	describe "Wrong informations" do
+	describe "Chech member with empty informations" do
+	
+		subject do
+			m = Member.new
+			m.login = ''
+			m.password = ''
+			m.password_confirmation = ''
+			m
+		end
+	
+		it "A member with empty information should not be valid" do
+			subject.valid?.should be_false
+		end
+		
+		it "Should not be be valid with an empty login" do
+			subject.valid?
+			subject.errors.messages[:login].include?("can't be blank").should be_true
+		end
+		
+		it "Should not be be valid with an empty password" do
+			subject.valid?
+			subject.errors.messages[:password].include?("can't be blank").should be_true
+		end
+		
+		it "Should not be be valid with an empty password confirmation" do
+			subject.valid?
+			subject.errors.messages[:password_confirmation].include?("can't be blank").should be_true
+		end
+	
+	end
+	
+	describe "Check member with wrong informations (format no valid)" do
 	
 		subject do
 			m = Member.new
@@ -54,7 +85,7 @@ describe Member do
 	
 	end
 	
-	describe "Check unicity informations" do
+	describe "Check member with no unique login" do
 	
 		it "Should not be valid with a no unique login" do
 			m1 = Member.new
@@ -86,15 +117,14 @@ describe Member do
 			m
 		end
 		
-		it "Should call the encryption sha1" do
-			Digest::SHA1.should_receive(:hexdigest).with("password").and_return("5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8")
-			subject.password = "password"
-			subject.password.should == '5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8'
+		it "Should return the rigth hash" do
+			Member.encrypt_password('password') == Digest::SHA1.hexdigest('password')
 		end
 		
-		it "Should have the password hash registered" do
+		it "Should call the encryption sha1" do
+			Digest::SHA1.should_receive(:hexdigest).with("password").and_return('5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8')
 			subject.password = "password"
-			subject.password.should == Member.encrypt_password("password")
+			subject.password.should == '5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8'
 		end
 		
 		it "Should not be valid with a wrong password confirmation" do
@@ -111,33 +141,27 @@ describe Member do
 	
 	end
 	
-	describe "Authentication" do
+	describe "Check authentication" do
 	
-		it "Should return the rigth hash" do
-			Member.encrypt_password('password') == Digest::SHA1.hexdigest('password')
+		before do
+			@m = double(Member)
+			@m.stub(:login).and_return('Vin100')
+			@m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')	# Password
 		end
 	
 		it "Should not authenticate with success" do
-			m = double(Member)
-			m.stub(:login).and_return('Vin100')
-			m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')	# Password
-			
-			Member.stub(:find_by_login).with('Vin100').and_return(m)
+			Member.stub(:find_by_login).with('Vin100').and_return(@m)
 			Member.authenticate('Vin100', 'password').should be_false
 		end
 		
 		it "Should authenticate with success" do
-			m = double(Member)
-			m.stub(:login).and_return('Vin100')
-			m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')	# Password
-			
-			Member.stub(:find_by_login).with('Vin100').and_return(m)
+			Member.stub(:find_by_login).with('Vin100').and_return(@m)
 			Member.authenticate('Vin100', 'Password').should be_true
 		end
 	
 	end
 	
-	describe "Member valid" do
+	describe "Check a member valid" do
 		
 		subject do
 			m = Member.new

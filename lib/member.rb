@@ -18,15 +18,21 @@ class Member < ActiveRecord::Base
 	
 	validates :password_confirmation, :presence => true
 	
+	def login=(login)
+		unless login.empty?
+			self[:login] = login
+		end
+	end
+	
 	# Redefine password and password_confirmation because of sha1 encryption
 	def password=(password)
-		unless password.nil?
+		unless password.empty?
 			self[:password] = Member.encrypt_password(password)
 		end
 	end
 	
 	def password_confirmation=(password)
-		unless password.nil?
+		unless password.empty?
 			@password_confirmation = Member.encrypt_password(password)
 		end
 	end

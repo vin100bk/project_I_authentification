@@ -18,5 +18,11 @@ class Application < ActiveRecord::Base
 	
 	# Manager_id
 	validates :member, :presence => true
+	
+	def name=(name)
+		unless name.empty?
+			self[:name] = name
+		end
+	end
 
 end

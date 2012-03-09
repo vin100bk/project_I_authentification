@@ -1,4 +1,4 @@
-$: << File.join(File.dirname(__FILE__), '..')
+$: << File.join(File.dirname(__FILE__), '..', '..')
 
 require 'authentification'
 require 'lib/application'
@@ -6,7 +6,7 @@ require 'lib/member'
 
 describe Application do
 
-	describe "Missing informations" do
+	describe "Check application with missing informations" do
 	
 		it "An empty application should not be valid" do
 			subject.valid?.should be_false
@@ -29,7 +29,27 @@ describe Application do
 	
 	end
 	
-	describe "Wrong informations" do
+	describe "Check application with missing informations" do
+	
+		subject do
+			a = Application.new
+			a.name = ''
+			# Url is tested after with the format
+			a
+		end
+	
+		it "An application with empty informations should not be valid" do
+			subject.valid?.should be_false
+		end
+		
+		it "Should not be be valid with an empty name" do
+			subject.valid?
+			subject.errors.messages[:name].include?("can't be blank").should be_true
+		end
+	
+	end
+	
+	describe "Check application with wrong informations" do
 	
 		subject do
 			a = Application.new
@@ -61,9 +81,9 @@ describe Application do
 	
 	end
 	
-	describe "Check unicity informations" do
+	describe "Check application with no unique name" do
 	
-		it "Should not be valid with a no unique login" do
+		it "Should not be valid with a no unique name" do
 			a1 = Application.new
 			a1.name = "my_app"
 			a1.url = "http://www.google.fr"
@@ -85,7 +105,7 @@ describe Application do
 		
 	end
 	
-	describe "Application valid" do
+	describe "Check an application valid" do
 		
 		subject do
 			a = Application.new
