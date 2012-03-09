@@ -16,8 +16,6 @@ class Member < ActiveRecord::Base
 	validates :password, :presence => true
 	validates :password, :confirmation => true
 	
-	validates :password_confirmation, :presence => true
-	
 	def login=(login)
 		unless login.empty?
 			self[:login] = login

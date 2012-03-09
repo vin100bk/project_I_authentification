@@ -20,11 +20,6 @@ describe Member do
 			subject.valid?
 			subject.errors.messages[:password].include?("can't be blank").should be_true
 		end
-		
-		it "Should not be be valid with no password confirmation" do
-			subject.valid?
-			subject.errors.messages[:password_confirmation].include?("can't be blank").should be_true
-		end
 	
 	end
 	
@@ -50,11 +45,6 @@ describe Member do
 		it "Should not be be valid with an empty password" do
 			subject.valid?
 			subject.errors.messages[:password].include?("can't be blank").should be_true
-		end
-		
-		it "Should not be be valid with an empty password confirmation" do
-			subject.valid?
-			subject.errors.messages[:password_confirmation].include?("can't be blank").should be_true
 		end
 	
 	end
