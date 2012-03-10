@@ -70,18 +70,14 @@ helpers do
 		if !params['app_name'].nil?
 		app = Application.find_by_name(params['app_name'])
 		
-		print "\n\n" + params.inspect + "\n\n"
-		
 			if app.nil?
 				# App does not exist
 				redirect_url = '/'
-				print "\n\nTEST1" + redirect_url.inspect + "\n\n"
 			else
 				# App exists
 				redirect_url = app.url + params['origin'] + '?login=' + current_username + '&token=' + Digest::SHA1.hexdigest(app.token + current_username)
 			end
 		else
-			print "\n\nTEST2" + redirect_url.inspect + "\n\n"
 			redirect_url = '/'
 		end
 		
@@ -217,7 +213,7 @@ post '/application/new/?' do
 		if a.valid?
 			# Valid application
 			a.save
-			session[:flash] = 'Your application has been added with succes.'
+			session[:flash] = '<p class="validation">Your application has been added with succes.</p>'
 			redirect '/'
 		else
 			# No valid application
@@ -232,14 +228,15 @@ get '/application/destroy/:app_id/?' do
 	if !is_connected
 		redirect '/'
 	else
-		a = Application.find_by_id(params[:app_id])
+		a = Application.find_by_id(params[:app_id], :conditions => {:member_id => current_user.id})
 		
-		if Application.delete(params[:app_id]) == 1
-			session[:flash] = 'The application has been deleted with success.'
+		if !a.nil?
+			Application.delete(params[:app_id])
+			session[:flash] = '<p class="validation">The application has been deleted with success.</p>'
 			redirect '/'
 		else
 			# Unknown application
-			session[:flash] = 'The application you want to delete does not exist.'
+			session[:flash] = '<p class="error">The application you want to delete does not exist.</p>'
 			redirect '/'
 		end
 	end

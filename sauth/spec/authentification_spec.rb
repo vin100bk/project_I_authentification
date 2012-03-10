@@ -64,7 +64,7 @@ describe 'The Authentification App' do
 		
 		it "Session should not exists" do
 			post '/session/new', @params
-			last_response.body.include?('Le compte avec l\'identifiant').should be_true
+			last_response.body.include?('The account with the username').should be_true
 		end
 		
 		it "Session should exists but with a wrong password" do
@@ -75,7 +75,7 @@ describe 'The Authentification App' do
 			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(m)
 			
 			post '/session/new', @params
-			last_response.body.include?('Le mot de passe ne correspond pas &agrave; l\'identifiant').should be_true
+			last_response.body.include?('The password does not match with the username').should be_true
 		end
 		
 		it "Should authenticate with success" do
