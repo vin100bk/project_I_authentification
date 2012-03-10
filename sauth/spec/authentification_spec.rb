@@ -176,5 +176,38 @@ describe 'The Authentification App' do
 		end
 		
 	end
+	
+	describe "Check login by cookie" do
+	
+		before do
+			clear_cookies
+		end
+	
+		it "Should be connected with a cookie" do
+			# Set cookie
+			set_cookie 'token=random_token'
+			
+			m = double(Member)
+			m.stub(:login).and_return('Name')
+			
+			Member.should_receive(:find_by_token).with('random_token').and_return(m)
+			Token.should_receive(:generate).and_return('other_token')
+			
+			get '/'
+			last_request.cookies['token'].should == 'random_token'
+			last_request.env['rack.session']['current_user'].should == 'Name'
+		end
+		
+		it "Should not be connected with a wrong cookie" do
+			# Set cookie
+			set_cookie 'token=random_token'
+			
+			Member.should_receive(:find_by_token).with('random_token').and_return(nil)
+			
+			get '/'
+			last_request.env['rack.session']['current_user'].should be_nil
+		end
+	
+	end
 
 end

@@ -6,6 +6,7 @@ require 'digest/sha1'
 # Libs
 require 'lib/member'
 require 'lib/application'
+require 'lib/utilisation'
 require 'lib/token'
 
 # Database
@@ -54,9 +55,8 @@ helpers do
 		
 		token = Token.generate
 		# Update token in database
-		current_user = Member.find_by_login(user.login)
-		current_user.token = token
-		current_user.save
+		user.token = token
+		user.save
 		# Cookie available for 1 week
 		response.set_cookie('token', {:value => token, :expires => Time.parse(Date.today.next_day(7).to_s), :path => '/'})
 	end
@@ -68,7 +68,7 @@ helpers do
 	
 	def get_redirect_url
 		if !params['app_name'].nil?
-		app = Application.find_by_name(params['app_name'])
+			app = Application.find_by_name(params['app_name'])
 		
 			if app.nil?
 				# App does not exist
@@ -76,6 +76,11 @@ helpers do
 			else
 				# App exists
 				redirect_url = app.url + params['origin'] + '?login=' + current_username + '&token=' + Digest::SHA1.hexdigest(app.token + current_username)
+				# Save the utilisation
+				u = Utilisation.new
+				u.application = app
+				u.member = current_user
+				u.save
 			end
 		else
 			redirect_url = '/'
@@ -115,6 +120,7 @@ end
 get '/' do
 	if is_connected
 		@flash = flash
+		@user_utilisations = Application.get_utilisations(current_username)
 		@user_applications = Application.get_applications(current_username)
 		erb :"index/connected"
 	else
@@ -157,7 +163,7 @@ end
 # Authentification form
 get '/?:app_name?/session/new/?' do
 	if is_connected
-		redirect get_redirect_url % [current_username]
+		redirect get_redirect_url
 	else
 		erb :"session/form"
 	end
@@ -167,18 +173,16 @@ end
 post '/?:app_name?/session/new/?' do
 
 	if is_connected
-		redirect get_redirect_url % [current_username]
+		redirect get_redirect_url
 	else
 		m = Member.find_by_login(params['login'])
 		
 		if Member.authenticate(params['login'], params['password'])
 			# Authentification succeded
 			login(m)
-			redirect get_redirect_url % [current_username]
+			redirect get_redirect_url
 		else
-			# Authentification failed
-			@login = params['login']
-			
+			# Authentification failed			
 			if(m.nil?)
 				@error_session_message = :session_not_exists
 			else
