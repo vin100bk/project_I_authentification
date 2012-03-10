@@ -1,38 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Projet partie 1 : Authentification</title>
+	<title>Project part 1 : Authentification</title>
 	<link href="/style.css" rel="stylesheet" type="text/css" media="screen" />
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 </head>
 <body>
 
-	<h1>Service d'authenfication</h1>
+	<h1><span class="right"><a href="/">Home</a></span>Authentification service</h1>
 	
-	<% if @error_registration_application.nil? %>
-		<p class="info">Thank to filling the form below to add your application.</p>
-	<% else %>
-		<p class="error">Error while application adding, please to check your informations.</p>
-	<% end %>
+	<div id="content">
+		<% if @error_registration_application.nil? %>
+			<p class="info">Thank to filling the form below to add your application.</p>
+		<% else %>
+			<p class="error">Error while application adding, thank you to check your informations.</p>
+		<% end %>
 	
-	<div id="inscription">
-		<h2>Add an application</h2>
+		<div class="bloc">
+			<h2>Add an application</h2>
 		
-		<form method="post" action="/application/new">
-			<div class="field<%= is_field_error(@error_registration_application, :name) %>">
-				<%= get_field_error_message(@error_registration_application, :name) %>
-				<label for="label_name">Name :</label>
-				<input type="text" name="name" id="label_name" value="<%= get_field_value(:name) %>" placeholder="Name" required />
-			</div>
-			<div class="field<%= is_field_error(@error_registration_application, :url) %>">
-				<%= get_field_error_message(@error_registration_application, :url) %>
-				<label for="label_url">Url :</label>
-				<input type="text" name="url" id="label_url" value="<%= get_field_value(:url) %>" placeholder="http://www.your-site.com" required />
-			</div>
-			<div class="field_button">
-				<input type="submit" value="Add the application" />
-			</div>
-		</form>
+			<form method="post" action="/application/new">
+				<div class="field<%= is_field_error(@error_registration_application, :name) %>">
+					<%= get_field_error_message(@error_registration_application, :name) %>
+					<label for="label_name">Name :</label>
+					<input type="text" name="name" id="label_name" value="<%= get_field_value(:name) %>" placeholder="Name" required />
+				</div>
+				<div class="field<%= is_field_error(@error_registration_application, :url) %>">
+					<%= get_field_error_message(@error_registration_application, :url) %>
+					<label for="label_url">Url :</label>
+					<input type="text" name="url" id="label_url" value="<%= get_field_value(:url) %>" placeholder="http://www.your-site.com" required />
+				</div>
+				<div class="field_button">
+					<input type="submit" value="Add the application" />
+				</div>
+			</form>
+		</div>
 	</div>
 	
 </body>

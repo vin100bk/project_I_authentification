@@ -1,36 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>login page</title>
+	<title>Project part 1 : Authentification</title>
+	<link href="/style.css" rel="stylesheet" type="text/css" media="screen" />
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 </head>
 <body>
 
-	<h1>Service d'authenfication</h1>
+	<h1><span class="right"><strong>Home</strong></span>Authentification service</h1>
 	
-	<% unless @flash.nil? %>
-		<p class="flash_msg"><%= @flash %></p>
-	<% end %>
-	
-	<p>Welcome <strong><%= current_username %></strong>. This is your account page configuration. <a href="session/destroy">Logout</a></p>
-	
-	<div id="applications_used">
-		<h2>Applications which use your account</h2>
-	</div>
-	
-	<div id="applications_added">
-		<h2>Your applications</h2>
-		
-		<% if @user_applications.empty? %>
-			<p class="msg1">No applications registered</p>
-		<% else %>
-			<ul>
-				<% @user_applications.each do |app| %>
-					<li><span><a href="/application/destroy/<%= app.id %>" onclick="return(confirm('Do you want to delete the application <%= app.name %> ?'));">Delete</a></span><a href="<%= app.url %>"><%= app.name %></a></li>
-				<% end %>
-			</ul>	
+	<div id="content">
+
+		<% unless @flash.nil? %>
+			<%= @flash %>
 		<% end %>
+	
+		<p><span class="right"><a href="session/destroy">Logout</a></span>Welcome <strong><%= current_username %></strong>. This is your account page configuration.</p>
+	
+		<div class="bloc">
+			<h2>Applications which use your account</h2>
+			
+			<% if @user_utilisations.empty? %>
+				<p class="msg1">No website use your account</p>
+			<% else %>
+				<ul class="list">
+					<% @user_utilisations.each do |app| %>
+						<li><a href="<%= app.url %>"><%= app.name %></a></li>
+					<% end %>
+				</ul>	
+			<% end %>
+			
+		</div>
+	
+		<div class="bloc">
+			<h2>Your applications</h2>
 		
-		<p class="msg2"><a href="/application/new">Add an application</a></p>
+			<% if @user_applications.empty? %>
+				<p class="msg1">No applications registered</p>
+			<% else %>
+				<ul class="list">
+					<% @user_applications.each do |app| %>
+						<li>
+							<span class="right"><a href="/application/destroy/<%= app.id %>" onclick="return(confirm('Do you want to delete the application <%= app.name %> ?'));">Delete</a></span>
+							<a href="<%= app.url %>"><%= app.name %></a> <em>Copy/Paste the code bellow in your private section :</em>
+							<span class="code">
+								if !session[:current_user_<%= app.name %>].nil? || (!params['token'].nil? && !params['login'].nil? && params['token'] == Digest::SHA1.hexdigest('<%= app.token %>' + params['login']))<br />
+								&nbsp;&nbsp;# User connected<br />
+								&nbsp;&nbsp;session[:current_user_<%= app.name %>] ||= params['login']<br />
+								&nbsp;&nbsp;# Here is your protected section, put your private code<br />
+								&nbsp;&nbsp;erb :protected<br />
+								else<br />
+								&nbsp;&nbsp;redirect 'http://localhost:9090/<%= app.name %>/session/new?origin=' + request.path<br />
+								end
+							</span>
+						</li>
+					<% end %>
+				</ul>	
+			<% end %>
+		
+			<p class="msg2"><a href="/application/new">Add an application</a></p>
+		</div>
+		
 	</div>
 
 </body>

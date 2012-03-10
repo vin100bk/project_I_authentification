@@ -1,0 +1,129 @@
+body {
+	width:1000px;
+	margin:10px auto 0;
+	border:1px solid #356;
+	border-bottom:3px solid #356;
+	font-family:Arial;
+	color:#000;
+	font-size:13px;
+}
+
+#content {
+	padding:10px 20px;
+}
+
+em {
+	font-size:11px;
+}
+h1 {
+	background-color:#356;
+	color:#fff;
+	margin:0;
+	padding-left:10px;
+	font-size:30px;
+}
+h1 span {
+	font-size:13px;
+	font-weight:normal;
+	line-height:30px;
+	margin-right:10px;
+}
+h1 a {
+	text-decoration:none;
+	color:#fff;
+}
+h1 a:hover {
+	text-decoration:underline;
+}
+h2 {
+	margin:0;
+	font-size:20px;
+}
+p {
+	margin:0 0 13px;
+}
+ul {
+	padding:0;
+	margin:0 0 13px 40px;
+}
+
+/* Formulaires */
+label {
+	display:block;
+	float:left;
+	clear:left;
+	width:30%;
+}
+.field {
+	padding:5px;
+	margin-bottom:5px;
+}
+.field_button {
+	text-align:right;
+	margin-right:10px;
+	margin-bottom:10px;
+}
+.field_error {
+	background-color:#f55;
+}
+.error_messages p {
+	margin-bottom:5px;
+}
+.error_messages ul {
+	list-style-type:square;
+	margin-bottom:5px;
+}
+
+.right {
+	float:right;
+}
+.bloc {
+	border:1px solid #555;
+	position:relative;
+	margin-bottom:20px;
+	padding:20px 10px 0;
+}
+.bloc h2 {
+	position:absolute;
+	top:-10px;
+	left:-10px;
+	line-height:20px;
+	background-color:#fff;
+	padding-right:10px;
+}
+ul.list {
+	list-style-type:none;
+	margin:0 0 13px;
+	padding:0;
+}
+ul.list li {
+	padding:2px 5px;
+	background-color:#eee;
+}
+ul.list li:hover {
+	background-color:#ddd;
+}
+.code {
+	display:block;
+	font-family:"Courier New";
+	font-size:11px;
+	background-color:#000;
+	color:#fff;
+	margin:5px;
+	padding:5px;
+	
+}
+.msg2 {
+	text-align:center;
+}
+.info {
+	color:#00f;
+	margin-bottom:20px;
+}
+.error {
+	color:#f00;
+	margin-bottom:20px;
+}
+.validation {
+	color:#0a0;
+}
