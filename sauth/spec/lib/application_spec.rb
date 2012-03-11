@@ -136,19 +136,19 @@ describe Application do
 			m.login = 'User'
 			m.password = "pw"
 			m.password_confirmation = "pw"
-			m.save
+			m.save!
 			
 			a1 = Application.new
-			a1.name = "App1"
+			a1.name = "My_app1"
 			a1.url = "http://www.app1.fr"
 			a1.member = m
-			a1.save
+			a1.save!
 			
 			a2 = Application.new
-			a2.name = "App2"
+			a2.name = "My_app2"
 			a2.url = "http://www.app2.fr"
 			a2.member = m
-			a2.save
+			a2.save!
 			
 			Application.get_applications('User').length.should == 2
 			

@@ -28,5 +28,10 @@ class Application < ActiveRecord::Base
 	def self.get_applications(username)
 		Application.find_all_by_member_id(Member.find_by_login(username))
 	end
+	
+	def self.delete(app_id)
+		super(app_id)
+		Utilisation.delete_all 'application_id = ' + app_id
+	end
 
 end

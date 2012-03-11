@@ -3,7 +3,7 @@ $: << File.join(File.dirname(__FILE__), '..')
 require 'authentification'
 require 'rack/test'
 
-enable :sessions
+set :sessions, true
 
 describe 'The Authentification App' do
 
