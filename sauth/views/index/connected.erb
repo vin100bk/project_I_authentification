@@ -49,6 +49,9 @@
 								&nbsp;&nbsp;session[:current_user_<%= app.name %>] ||= params['login']<br />
 								&nbsp;&nbsp;# Here is your protected section, put your private code<br />
 								&nbsp;&nbsp;erb :protected<br />
+								elsif !params['token'].nil? && !params['login'].nil?<br />
+								&nbsp;&nbsp;# Access refused<br />
+								&nbsp;&nbsp;'You cannot access to this section !'
 								else<br />
 								&nbsp;&nbsp;redirect 'http://localhost:9090/<%= app.name %>/session/new?origin=' + request.path<br />
 								end

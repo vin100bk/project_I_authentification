@@ -99,6 +99,7 @@ ul.list {
 ul.list li {
 	padding:2px 5px;
 	background-color:#eee;
+	margin-bottom:5px;
 }
 ul.list li:hover {
 	background-color:#ddd;
