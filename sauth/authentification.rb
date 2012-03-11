@@ -120,7 +120,7 @@ end
 get '/' do
 	if is_connected
 		@flash = flash
-		@user_utilisations = Application.get_utilisations(current_username)
+		@user_utilisations = Utilisation.get_utilisations(current_username)
 		@user_applications = Application.get_applications(current_username)
 		erb :"index/connected"
 	else

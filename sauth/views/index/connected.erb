@@ -24,8 +24,8 @@
 				<p class="msg1">No website use your account</p>
 			<% else %>
 				<ul class="list">
-					<% @user_utilisations.each do |app| %>
-						<li><a href="<%= app.url %>"><%= app.name %></a></li>
+					<% @user_utilisations.each do |use| %>
+						<li><a href="<%= use.application.url %>"><%= use.application.name %></a></li>
 					<% end %>
 				</ul>	
 			<% end %>

@@ -28,9 +28,5 @@ class Application < ActiveRecord::Base
 	def self.get_applications(username)
 		Application.find_all_by_member_id(Member.find_by_login(username))
 	end
-	
-	def self.get_utilisations(username)
-		Application.find_all_by_id(Utilisation.find_by_member_id(Member.find_by_login(username)))
-	end
 
 end
