@@ -70,18 +70,13 @@ helpers do
 		if !params['app_name'].nil?
 			app = Application.find_by_name(params['app_name'])
 		
-			if app.nil?
-				# App does not exist
-				redirect_url = '/'
-			else
-				# App exists
-				redirect_url = app.url + params['origin'] + '?login=' + current_username + '&token=' + Digest::SHA1.hexdigest(app.token + current_username)
-				# Save the utilisation
-				u = Utilisation.new
-				u.application = app
-				u.member = current_user
-				u.save
-			end
+			# App exists (tested before)
+			redirect_url = app.url + params['origin'] + '?login=' + current_username + '&token=' + Digest::SHA1.hexdigest(app.token + current_username)
+			# Save the utilisation
+			u = Utilisation.new
+			u.application = app
+			u.member = current_user
+			u.save
 		else
 			redirect_url = '/'
 		end
@@ -162,7 +157,9 @@ end
 
 # Authentification form
 get '/?:app_name?/session/new/?' do
-	if is_connected
+	if !params['app_name'].nil? && !Application.exists?(params['app_name'])
+		redirect '/session/new'
+	elsif is_connected
 		redirect get_redirect_url
 	else
 		erb :"session/form"
@@ -171,8 +168,9 @@ end
 
 # Authentification validation
 post '/?:app_name?/session/new/?' do
-
-	if is_connected
+	if !params['app_name'].nil? && !Application.exists?(params['app_name'])
+		redirect '/session/new'
+	elsif is_connected
 		redirect get_redirect_url
 	else
 		m = Member.find_by_login(params['login'])
@@ -232,10 +230,10 @@ get '/application/destroy/:app_id/?' do
 	if !is_connected
 		redirect '/'
 	else
-		a = Application.find_by_id(params[:app_id], :conditions => {:member_id => current_user.id})
+		a = Application.find_by_id(params[:app_id].to_i, :conditions => {:member_id => current_user.id})
 		
 		if !a.nil?
-			Application.delete(params[:app_id])
+			Application.delete(params[:app_id].to_i)
 			session[:flash] = '<p class="validation">The application has been deleted with success.</p>'
 			redirect '/'
 		else
@@ -247,7 +245,14 @@ get '/application/destroy/:app_id/?' do
 end
 
 # Logout
+get '/session/logout/?' do
+	logout
+	redirect '/'
+end
+
+# Destroy his account
 get '/session/destroy/?' do
+	Member.delete(current_user.id)
 	logout
 	redirect '/'
 end

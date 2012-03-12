@@ -1,8 +1,6 @@
 $: << File.join(File.dirname(__FILE__), '..', '..')
 
 require 'authentification'
-require 'lib/application'
-require 'lib/member'
 
 describe Application do
 
@@ -125,10 +123,10 @@ describe Application do
 		
 	end
 	
-	describe "Check list of a member applications" do
+	describe "Check the member applications list" do
 	
 		it "Should return an empty list" do
-			#Application.get_applications('toto').empty?.should be_true
+			Application.get_applications('toto').empty?.should be_true
 		end
 		
 		it "Should return applications associated to the member" do
@@ -156,6 +154,20 @@ describe Application do
 			Member.delete(m.id)
 			Application.delete(a1.id)
 			Application.delete(a2.id)
+		end
+	
+	end
+	
+	describe "Check method exists?(app_name)" do
+	
+		it "Should return true for an existing application" do
+			Application.should_receive(:find_by_name).with('My_app').and_return(double(Application))
+			Application.exists?('My_app').should be_true
+		end
+		
+		it "Should return true for a non existing application" do
+			Application.should_receive(:find_by_name).with('My_app').and_return(nil)
+			Application.exists?('My_app').should be_false
 		end
 	
 	end

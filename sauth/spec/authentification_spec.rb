@@ -35,9 +35,22 @@ describe 'The Authentification App' do
 			last_response.should be_redirect
 		end
 		
+		it "Connexion form should be redirected with a non existing application" do
+			get '/Test/session/new'
+			last_response.should be_redirect
+			follow_redirect!
+			last_request.path.should == '/session/new'
+		end
+		
+		it "Connexion form should be displayed with an existing application" do
+			Application.should_receive(:exists?).with('Test').and_return(true)
+			get '/Test/session/new'
+			last_response.should be_ok
+		end
+		
 	end
 	
-	describe "Check authentification" do
+	describe "post '/session/new'" do
 	
 		before do
 			@params = {
@@ -105,10 +118,43 @@ describe 'The Authentification App' do
 			last_request.cookies['token'].nil?.should be_false
 			last_request.cookies['token'].should == 'random_token'
 		end
+		
+		context "post '/App_name/session/new'" do
+		
+			before do
+				@app = double(Application)
+				@app.stub(:url).and_return('http://www.google.fr')
+				@app.stub(:token).and_return('random_token')
+				
+				@params['origin'] = '/protected'
+			end
+			
+			it "Should authenticate with success with an existing client application" do
+				Application.should_receive(:exists?).with('Test').and_return(true)
+				Application.should_receive(:find_by_name).with('Test').and_return(@app)
+				
+				Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(@m)
+				
+				u = double(Utilisation)
+				u.stub(:application=)
+				u.stub(:member=)
+				u.stub(:save)
+				Utilisation.should_receive(:new).and_return(u)
+				
+				post '/Test/session/new', @params
+				# If redirect : authentification sucessful
+				last_response.should be_redirect
+				follow_redirect!
+				last_request.path.should == @params['origin']
+				last_request.params['login'].should == @params['login']
+				last_request.params['token'].should == Digest::SHA1.hexdigest('random_tokenVin100')
+			end
+			
+		end
 	
 	end
 	
-	describe "Check registration" do
+	describe "post '/register/new'" do
 		
 		before(:each) do
 			@params = {
@@ -206,6 +252,119 @@ describe 'The Authentification App' do
 			
 			get '/'
 			last_request.env['rack.session']['current_user'].should be_nil
+		end
+	
+	end
+	
+	describe "Tests as connected member" do
+	
+		before do
+			# Execute an authentification (cannot create session in tests ...)
+			params = {
+				'login' => 'Vin100',
+				'password' => 'Password'
+			}
+			m = double(Member)
+			m.stub(:id).and_return(1)
+			m.stub(:login).and_return('Vin100')
+			m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')
+			m.stub(:token=)
+			m.stub(:save)
+			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(m)
+			post '/session/new', params
+			follow_redirect!
+		end
+		
+		describe "get '/session/logout'" do
+			
+			it "Should not have session and cookie after logout" do
+				get '/session/logout'
+				last_response.should be_redirect
+				follow_redirect!
+				last_request.path.should == '/'
+				last_request.env['rack.session']['current_user'].should be_nil
+				last_request.cookies['token'].should be_nil
+			end
+			
+		end
+		
+		describe "get '/session/destroy'" do
+		
+			it "Should delete the account of the current user" do
+				Member.should_receive(:delete).with(1)
+				get '/session/destroy'
+				last_response.should be_redirect
+				follow_redirect!
+				last_request.path.should == '/'
+				last_request.env['rack.session']['current_user'].should be_nil
+				last_request.cookies['token'].should be_nil
+			end
+		
+		end
+		
+		describe "post '/application/new'" do
+		
+			before do
+				@params = {
+					'name' => 'App1',
+					'url' => 'http://www.app1.com'
+				}
+			end
+			
+			after(:each) do
+				a = Application.find_by_name(@params['name'])
+			
+				unless a.nil?
+					Application.delete(a.id)
+				end
+			end
+		
+			it "Registration application form" do
+				get '/application/new'
+				last_response.should be_ok
+			end
+			
+			it "Should not add the application with success (ugly name)" do
+				@params['name'] = 'my cute application'
+			
+				a = Application.new
+				a.member = Member.new
+				a.stub(:member=).and_return(Member.new)
+				Application.should_receive(:new).and_return(a)
+			
+				post '/application/new', @params
+				last_response.should be_ok	# If there is not redirection, error while adding
+			end
+		
+			# Other tests available for validators in application_spec.rb ...
+		
+			it "Should not add the application with success (ugly name)" do
+				a = Application.new
+				a.member = Member.new
+				a.stub(:member=).and_return(Member.new)
+				Application.should_receive(:new).and_return(a)
+			
+				post '/application/new', @params
+				last_response.should be_redirect
+			end
+			
+		end
+		
+		describe "get '/application/destroy/10'" do
+		
+			it "Should delete the application" do
+				Application.should_receive(:find_by_id).with(10, :conditions => {:member_id => 1}).and_return(double(Application))
+				Application.should_receive(:delete).with(10)
+				get '/application/destroy/10'
+				last_response.body.include?('<p class="validation">The application has been deleted with success.</p>')
+			end
+			
+			it "Should delete the application" do
+				Application.should_receive(:find_by_id).with(10, :conditions => {:member_id => 1}).and_return(nil)
+				get '/application/destroy/10'
+				last_response.body.include?('<p class="error">The application you want to delete does not exist.</p>')
+			end
+		
 		end
 	
 	end

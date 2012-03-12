@@ -33,5 +33,9 @@ class Application < ActiveRecord::Base
 		super(app_id)
 		Utilisation.delete_all 'application_id = ' + app_id.to_s
 	end
+	
+	def self.exists?(app_name)
+		!Application.find_by_name(app_name).nil?
+	end
 
 end
