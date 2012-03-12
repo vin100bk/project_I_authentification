@@ -31,7 +31,7 @@ class Application < ActiveRecord::Base
 	
 	def self.delete(app_id)
 		super(app_id)
-		Utilisation.delete_all 'application_id = ' + app_id
+		Utilisation.delete_all 'application_id = ' + app_id.to_s
 	end
 
 end
