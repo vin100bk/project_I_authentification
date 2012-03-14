@@ -20,21 +20,6 @@ set :port, 9090
 enable :sessions
 
 helpers do
-	def is_connected
-		if session[:current_user].nil? && !request.cookies['token'].nil?
-			user = Member.find_by_token(request.cookies['token'])
-			
-			if !user.nil?
-				# Token available
-				login(user)
-			else
-				# Wrong token
-				logout
-			end
-		end
-
-		!session[:current_user].nil?
-	end
 	
 	def current_user
 		Member.find_by_login(current_username)
@@ -42,12 +27,6 @@ helpers do
 	
 	def current_username
 		session[:current_user]
-	end
-	
-	def flash
-		flash = session[:flash]
-		session[:flash] = nil
-		flash
 	end
 	
 	def login(user)
@@ -66,22 +45,26 @@ helpers do
 		response.set_cookie('token', {:value => '', :expires => Time.at(0), :path => '/'})
 	end
 	
-	def get_redirect_url
-		if !params['app_name'].nil?
-			app = Application.find_by_name(params['app_name'])
-		
-			# App exists (tested before)
-			redirect_url = app.url + params['origin'] + '?login=' + current_username + '&token=' + Digest::SHA1.hexdigest(app.token + current_username)
-			# Save the utilisation
-			u = Utilisation.new
-			u.application = app
-			u.member = current_user
-			u.save
-		else
-			redirect_url = '/'
+	def connected?
+		if session[:current_user].nil? && !request.cookies['token'].nil?
+			user = Member.find_by_token(request.cookies['token'])
+			
+			if !user.nil?
+				# Token available
+				login(user)
+			else
+				# Wrong token
+				logout
+			end
 		end
-		
-		redirect_url
+
+		!session[:current_user].nil?
+	end
+	
+	def flash
+		flash = session[:flash]
+		session[:flash] = nil
+		flash
 	end
 	
 	# Views helpers
@@ -113,8 +96,9 @@ end
 
 # Index
 get '/' do
-	if is_connected
-		@flash = flash
+	@flash = flash
+	
+	if connected?
 		@user_utilisations = Utilisation.get_utilisations(current_username)
 		@user_applications = Application.get_applications(current_username)
 		erb :"index/connected"
@@ -125,7 +109,7 @@ end
 
 # Register form
 get '/register/new/?' do
-	if is_connected
+	if connected?
 		redirect '/'
 	else
 		erb :"register/form"
@@ -134,7 +118,7 @@ end
 
 # Register validation
 post '/register/new/?' do
-	if is_connected
+	if connected?
 		redirect '/'
 	else
 		m = Member.new
@@ -143,12 +127,10 @@ post '/register/new/?' do
 		m.password_confirmation = params['password_confirmation']
 		
 		if m.valid?
-			# Le membre valide
 			m.save
 			login(m)
 			redirect '/'
 		else
-			# Membre non valide
 			@error_register = m.errors.messages
 			erb :"register/form"
 		end
@@ -158,9 +140,10 @@ end
 # Authentification form
 get '/?:app_name?/session/new/?' do
 	if !params['app_name'].nil? && !Application.exists?(params['app_name'])
-		redirect '/session/new'
-	elsif is_connected
-		redirect get_redirect_url
+		session[:flash] = '<p class="error">The application which you want to access does not exist.</p>'
+		redirect '/'
+	elsif connected?
+		redirect Application.get_redirect_url(params['app_name'], params['origin'], current_user)
 	else
 		erb :"session/form"
 	end
@@ -169,16 +152,17 @@ end
 # Authentification validation
 post '/?:app_name?/session/new/?' do
 	if !params['app_name'].nil? && !Application.exists?(params['app_name'])
-		redirect '/session/new'
-	elsif is_connected
-		redirect get_redirect_url
+		session[:flash] = '<p class="error">The application which you want to access does not exist.</p>'
+		redirect '/'
+	elsif connected?
+		redirect Application.get_redirect_url(params['app_name'], params['origin'], current_user)
 	else
 		m = Member.find_by_login(params['login'])
 		
 		if Member.authenticate(params['login'], params['password'])
 			# Authentification succeded
 			login(m)
-			redirect get_redirect_url
+			redirect Application.get_redirect_url(params['app_name'], params['origin'], current_user)
 		else
 			# Authentification failed			
 			if(m.nil?)
@@ -194,7 +178,7 @@ end
 
 # Register application form
 get '/application/new/?' do
-	if !is_connected
+	if !connected?
 		redirect '/'
 	else
 		erb :"application/form"
@@ -203,7 +187,7 @@ end
 
 # Register an application
 post '/application/new/?' do
-	if !is_connected
+	if !connected?
 		redirect '/'
 	else
 		a = Application.new
@@ -227,7 +211,7 @@ end
 
 # Delete an application
 get '/application/destroy/:app_id/?' do
-	if !is_connected
+	if !connected?
 		redirect '/'
 	else
 		a = Application.find_by_id(params[:app_id].to_i, :conditions => {:member_id => current_user.id})

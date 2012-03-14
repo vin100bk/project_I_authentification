@@ -4,6 +4,27 @@ require 'authentification'
 
 describe Application do
 
+	describe "Check an application valid" do
+		
+		subject do
+			a = Application.new
+			a.name = "vin100_to-test"
+			a.url = "http://www.google.fr"
+			a.member = Member.new
+			a
+		end
+		
+		it "Should be valid" do
+			subject.valid?.should be_true
+		end
+		
+		it "Should be valid with a https url" do
+			subject.url = "https://viveruby.com"
+			subject.valid?.should be_true
+		end
+		
+	end
+
 	describe "Check application with missing informations" do
 	
 		it "An empty application should not be valid" do
@@ -27,12 +48,11 @@ describe Application do
 	
 	end
 	
-	describe "Check application with missing informations" do
+	describe "Check application with empty informations" do
 	
 		subject do
 			a = Application.new
 			a.name = ''
-			# Url is tested after with the format
 			a
 		end
 	
@@ -102,28 +122,7 @@ describe Application do
 		
 	end
 	
-	describe "Check an application valid" do
-		
-		subject do
-			a = Application.new
-			a.name = "vin100_to-test"
-			a.url = "http://www.google.fr"
-			a.member = Member.new
-			a
-		end
-		
-		it "Should be valid" do
-			subject.valid?.should be_true
-		end
-		
-		it "Should be valid with a https url" do
-			subject.url = "https://viveruby.com"
-			subject.valid?.should be_true
-		end
-		
-	end
-	
-	describe "Check the member applications list" do
+	describe "Application::get_applications(app_name)" do
 	
 		it "Should return an empty list" do
 			Application.get_applications('toto').empty?.should be_true
@@ -158,14 +157,66 @@ describe Application do
 	
 	end
 	
-	describe "Check method exists?(app_name)" do
+	describe "Application::delete(app_id)" do
+	
+		before do
+			@m1 = Member.new
+			@m1.login = 'User1'
+			@m1.password = "pw"
+			@m1.password_confirmation = "pw"
+			@m1.save!
+			
+			@m2 = Member.new
+			@m2.login = 'User2'
+			@m2.password = "pw"
+			@m2.password_confirmation = "pw"
+			@m2.save!
+			
+			@a = Application.new
+			@a.name = "My_app1"
+			@a.url = "http://www.app1.fr"
+			@a.member = @m1
+			@a.save!
+			
+			@u1 = Utilisation.new
+			@u1.application = @a
+			@u1.member = @m1
+			@u1.save!
+			
+			@u2 = Utilisation.new
+			@u2.application = @a
+			@u2.member = @m2
+			@u2.save!
+		end
+		
+		after do
+			Member.delete(@m1.id)
+			Member.delete(@m2.id)
+			Application.delete(@a.id)
+			Utilisation.delete(@u1.id)
+			Utilisation.delete(@u2.id)
+		end
+	
+		it "Should delete the application" do
+			Application.delete(Application.find_by_name('My_app1').id)
+			Application.find_by_name('My_app1').should be_nil
+		end
+		
+		it "Should delete the utilisations" do
+			Application.delete(Application.find_by_name('My_app1').id)
+			Utilisation.find_all_by_application_id(Application.find_by_name('My_app1')).should be_empty
+		end
+	
+	end
+	
+	describe "Application::exists?(app_name)" do
 	
 		it "Should return true for an existing application" do
 			Application.should_receive(:find_by_name).with('My_app').and_return(double(Application))
 			Application.exists?('My_app').should be_true
 		end
 		
-		it "Should return true for a non existing application" do
+		it "Should return false for a non existing application" do
 			Application.should_receive(:find_by_name).with('My_app').and_return(nil)
 			Application.exists?('My_app').should be_false
 		end
