@@ -10,6 +10,11 @@
 	<h1><span class="right"><strong>Home</strong></span>Authentification service</h1>
 	
 	<div id="content">
+	
+		<% unless @flash.nil? %>
+			<%= @flash %>
+		<% end %>
+	
 		<p>Welcome, you are not login.<br />
 		To use this service, thank to login if you have an account or sign in else.</p>
 	
