@@ -43,7 +43,7 @@ class Member < ActiveRecord::Base
 		Digest::SHA1.hexdigest(password).inspect[1..40]	# Debug
 	end
 	
-	def self.authenticate(login, password)
+	def self.authenticate?(login, password)
 		m = Member.find_by_login(login)
 		!m.nil? && m.password == Member.encrypt_password(password)
 	end

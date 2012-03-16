@@ -5,6 +5,22 @@ require 'lib/member'
 
 describe Member do
 
+	describe "Check a valid member" do
+		
+		subject do
+			m = Member.new
+			m.login = "my__pseudo--"
+			m.password = "pw"
+			m.password_confirmation = "pw"
+			m
+		end
+		
+		it "Should be valid" do
+			subject.valid?.should be_true
+		end
+		
+	end
+
 	describe "Check a member with missing informations" do
 	
 		it "An empty member should not be valid" do
@@ -106,8 +122,10 @@ describe Member do
 			m
 		end
 		
-		it "Should return the rigth hash" do
-			Member.encrypt_password('password') == Digest::SHA1.hexdigest('password')
+		it "Should be valid with a right password confirmation" do
+			subject.password = "pw1"
+			subject.password_confirmation = "pw1"
+			subject.valid?.should be_true
 		end
 		
 		it "Should call the encryption sha1" do
@@ -121,49 +139,35 @@ describe Member do
 			subject.password_confirmation = "pw2"
 			subject.valid?.should be_false
 		end
-		
-		it "Should be valid with a right password confirmation" do
-			subject.password = "pw1"
-			subject.password_confirmation = "pw1"
-			subject.valid?.should be_true
+	
+	end
+	
+	describe "Member::encrypt_password(password)" do
+	
+		it "Should return the rigth hash" do
+			Member.encrypt_password('password') == Digest::SHA1.hexdigest('password')
 		end
 	
 	end
 	
-	describe "Check authentication" do
+	describe "Member::authenticate?(login, password)" do
 	
 		before do
 			@m = double(Member)
 			@m.stub(:login).and_return('Vin100')
 			@m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')	# Password
 		end
-	
-		it "Should not authenticate with success" do
-			Member.should_receive(:find_by_login).with('Vin100').and_return(@m)
-			Member.authenticate('Vin100', 'password').should be_false
-		end
 		
 		it "Should authenticate with success" do
 			Member.should_receive(:find_by_login).with('Vin100').and_return(@m)
-			Member.authenticate('Vin100', 'Password').should be_true
+			Member.authenticate?('Vin100', 'Password').should be_true
 		end
 	
-	end
+		it "Should not authenticate with success" do
+			Member.should_receive(:find_by_login).with('Vin100').and_return(@m)
+			Member.authenticate?('Vin100', 'password').should be_false
+		end
 	
-	describe "Check a member valid" do
-		
-		subject do
-			m = Member.new
-			m.login = "my__pseudo--"
-			m.password = "pw"
-			m.password_confirmation = "pw"
-			m
-		end
-		
-		it "Should be valid" do
-			subject.valid?.should be_true
-		end
-		
 	end
 
 end
