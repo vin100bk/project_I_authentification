@@ -139,11 +139,12 @@ end
 
 # Authentification form
 get '/?:app_name?/session/new/?' do
-	if !params['app_name'].nil? && !Application.exists?(params['app_name'])
+	app = Application.find_by_name(params['app_name'])
+	if !params['app_name'].nil? && app.nil?
 		session[:flash] = '<p class="error">The application which you want to access does not exist.</p>'
 		redirect '/'
 	elsif connected?
-		redirect Application.get_redirect_url(params['app_name'], params['origin'], current_user)
+		redirect Application.get_redirect_url(app, params['origin'], current_user)
 	else
 		erb :"session/form"
 	end
@@ -151,18 +152,19 @@ end
 
 # Authentification validation
 post '/?:app_name?/session/new/?' do
-	if !params['app_name'].nil? && !Application.exists?(params['app_name'])
+	app = Application.find_by_name(params['app_name'])
+	if !params['app_name'].nil? && app.nil?
 		session[:flash] = '<p class="error">The application which you want to access does not exist.</p>'
 		redirect '/'
 	elsif connected?
-		redirect Application.get_redirect_url(params['app_name'], params['origin'], current_user)
+		redirect Application.get_redirect_url(app, params['origin'], current_user)
 	else
 		m = Member.find_by_login(params['login'])
 		
-		if Member.authenticate(params['login'], params['password'])
+		if Member.authenticate?(params['login'], params['password'])
 			# Authentification succeded
 			login(m)
-			redirect Application.get_redirect_url(params['app_name'], params['origin'], current_user)
+			redirect Application.get_redirect_url(app, params['origin'], current_user)
 		else
 			# Authentification failed			
 			if(m.nil?)

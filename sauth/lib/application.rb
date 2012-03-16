@@ -38,11 +38,9 @@ class Application < ActiveRecord::Base
 		!Application.find_by_name(app_name).nil?
 	end
 	
-	def self.get_redirect_url(app_name, origin, user)
-		if !app_name.nil?
-			app = Application.find_by_name(app_name)
-		
-			# App exists (tested before)
+	def self.get_redirect_url(app, origin, user)
+		if !app.nil?
+			# App exists
 			redirect_url = app.url + origin + '?login=' + user.login + '&token=' + Digest::SHA1.hexdigest(app.token + user.login)
 			# Save the utilisation
 			u = Utilisation.new

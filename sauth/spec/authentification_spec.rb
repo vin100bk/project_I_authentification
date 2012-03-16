@@ -43,7 +43,7 @@ describe 'The Authentification App' do
 		end
 		
 		it "Connexion form should be displayed with an existing application" do
-			Application.should_receive(:exists?).with('Test').and_return(true)
+			Application.should_receive(:find_by_name).with('Test').and_return(double(Application))
 			get '/Test/session/new'
 			last_response.should be_ok
 		end
@@ -94,7 +94,7 @@ describe 'The Authentification App' do
 		end
 	
 		it "Should call authenticate method" do
-			Member.should_receive(:authenticate).at_least(1).with('Vin100', 'Password')
+			Member.should_receive(:authenticate?).at_least(1).with('Vin100', 'Password')
 			post '/session/new', @params
 		end
 		
@@ -132,7 +132,6 @@ describe 'The Authentification App' do
 			context "With an existing client application" do
 				
 				before do
-					Application.should_receive(:exists?).with('App_name').and_return(true)
 					Application.should_receive(:find_by_name).with('App_name').and_return(@app)
 				
 					Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(@m)
@@ -172,7 +171,7 @@ describe 'The Authentification App' do
 			context "With a non existing client application" do
 				
 				before do
-					Application.should_receive(:exists?).with('App_name').and_return(false)
+					Application.should_receive(:find_by_name).with('App_name').and_return(nil)
 				end
 			
 				it "Should be redirected to '/'" do

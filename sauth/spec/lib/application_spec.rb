@@ -68,7 +68,7 @@ describe Application do
 	end
 	
 	describe "Check application with wrong informations" do
-	
+
 		subject do
 			a = Application.new
 			a.name = "titi toto" 		#Blank space is forbidden
@@ -124,37 +124,40 @@ describe Application do
 	
 	describe "Application::get_applications(app_name)" do
 	
-		it "Should return an empty list" do
-			Application.get_applications('toto').empty?.should be_true
+		context "Without application" do
+			it "Should return an empty list" do
+				Application.get_applications('toto').empty?.should be_true
+			end
 		end
 		
-		it "Should return applications associated to the member" do
-			m = Member.new
-			m.login = 'User'
-			m.password = "pw"
-			m.password_confirmation = "pw"
-			m.save!
+		context "With application" do
+			it "Should return applications associated to the member" do
+				m = Member.new
+				m.login = 'User'
+				m.password = "pw"
+				m.password_confirmation = "pw"
+				m.save!
 			
-			a1 = Application.new
-			a1.name = "My_app1"
-			a1.url = "http://www.app1.fr"
-			a1.member = m
-			a1.save!
+				a1 = Application.new
+				a1.name = "My_app1"
+				a1.url = "http://www.app1.fr"
+				a1.member = m
+				a1.save!
 			
-			a2 = Application.new
-			a2.name = "My_app2"
-			a2.url = "http://www.app2.fr"
-			a2.member = m
-			a2.save!
+				a2 = Application.new
+				a2.name = "My_app2"
+				a2.url = "http://www.app2.fr"
+				a2.member = m
+				a2.save!
 			
-			Application.get_applications('User').length.should == 2
+				Application.get_applications('User').length.should == 2
 			
-			# Delete records saved
-			Member.delete(m.id)
-			Application.delete(a1.id)
-			Application.delete(a2.id)
+				# Delete records saved
+				Member.delete(m.id)
+				Application.delete(a1.id)
+				Application.delete(a2.id)
+			end
 		end
-	
 	end
 	
 	describe "Application::delete(app_id)" do
@@ -202,23 +205,45 @@ describe Application do
 			Application.find_by_name('My_app1').should be_nil
 		end
 		
-		it "Should delete the utilisations" do
+		it "Should delete the utilisations associated to the application" do
 			Application.delete(Application.find_by_name('My_app1').id)
 			Utilisation.find_all_by_application_id(Application.find_by_name('My_app1')).should be_empty
 		end
 	
 	end
 	
-	describe "Application::exists?(app_name)" do
+	describe "Application::get_redirect_url(app, origin, user)" do
 	
-		it "Should return true for an existing application" do
-			Application.should_receive(:find_by_name).with('My_app').and_return(double(Application))
-			Application.exists?('My_app').should be_true
+		before do
+			@app = Application.new
+			@app.stub(:url).and_return('http://www.my_site.com')
+			@app.stub(:token).and_return('my_token')
+			
+			@user = Member.new
+			@user.stub(:login).and_return('my_pseudo')
 		end
 		
-		it "Should return false for a non existing application" do
-			Application.should_receive(:find_by_name).with('My_app').and_return(nil)
-			Application.exists?('My_app').should be_false
+		after do
+			Utilisation.delete(Utilisation.find_by_application_id_and_member_id(@app.id, @user.id))
+		end
+	
+		it "Should return the private section url of the client application with the right get parameters" do
+			Digest::SHA1.should_receive(:hexdigest).with('my_tokenmy_pseudo').and_return('token_to_send_in_parameters')			
+			Application.get_redirect_url(@app, '/protected', @user).should == 'http://www.my_site.com/protected?login=my_pseudo&token=token_to_send_in_parameters'
+		end
+		
+		it "Should have an utilisation in database with this application and this member" do
+			u = double(Utilisation)
+			u.should_receive(:application=).with(@app)
+			u.should_receive(:member=).with(@user)
+			u.should_receive(:save)
+			
+			Utilisation.should_receive(:new).and_return(u)
+			Application.get_redirect_url(@app, '/protected', @user)
+		end
+		
+		it "Should return '/' with an non existing client application" do
+			Application.get_redirect_url(nil, '/protected', @user).should == '/'
 		end
 	
 	end
