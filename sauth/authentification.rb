@@ -37,14 +37,8 @@ helpers do
 	end
 	
 	def login(user)
-		session[:current_user] = user.login
-		
-		token = Token.generate
-		# Update token in database
-		user.token = token
-		user.save
-		# Cookie available for 1 week
-		response.set_cookie('token', {:value => token, :expires => Time.parse(Date.today.next_day(7).to_s), :path => '/'})
+		session[:current_user] = user.connect
+		response.set_cookie('token', {:value => user.token, :expires => Time.parse(Date.today.next_day(7).to_s), :path => '/'})
 	end
 	
 	def logout
@@ -128,13 +122,9 @@ post '/members/?' do
 	if connected?
 		redirect '/'
 	else
-		m = Member.new
-		m.login = params['login']
-		m.password = params['password']
-		m.password_confirmation = params['password_confirmation']
+		m = Member.new(:login => params['login'], :password => params['password'], :password_confirmation => params['password_confirmation'])
 		
-		if m.valid?
-			m.save
+		if m.save
 			login(m)
 			redirect '/'
 		else
@@ -166,13 +156,12 @@ post '/?:app_name?/sessions/?' do
 	elsif connected?
 		redirect Application.get_redirect_url(app, params['origin'], current_user)
 	else
-		m = Member.find_by_login(params['login'])
-		
-		if Member.authenticate?(params['login'], params['password'])
+		if (m = Member.authenticate(params['login'], params['password'])) != nil
 			# Authentification succeded
 			login(m)
-			redirect Application.get_redirect_url(app, params['origin'], current_user)
+			redirect Application.get_redirect_url(app, params['origin'], m)
 		else
+			m = Member.find_by_login(params['login'])
 			# Authentification failed			
 			if(m.nil?)
 				@error_session_message = :session_not_exists
@@ -199,15 +188,10 @@ post '/applications/?' do
 	if !connected?
 		redirect '/'
 	else
-		a = Application.new
-		a.name = params['name']
-		a.url = params['url']
-		a.token = Token.generate
-		a.member = current_user
+		a = Application.new(:name => params['name'], :url => params['url'], :token => Token.generate, :member => current_user)
 		
-		if a.valid?
+		if a.save
 			# Valid application
-			a.save
 			session[:flash] = '<p class="validation">Your application has been added with succes.</p>'
 			redirect '/'
 		else

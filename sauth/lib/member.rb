@@ -39,13 +39,20 @@ class Member < ActiveRecord::Base
 		@password_confirmation
 	end
 	
+	def connect
+		self[:token] = Token.generate
+		save
+		login
+	end
+	
 	def self.encrypt_password(password)
 		Digest::SHA1.hexdigest(password).inspect[1..40]	# Debug
 	end
 	
-	def self.authenticate?(login, password)
-		m = Member.find_by_login(login)
-		!m.nil? && m.password == Member.encrypt_password(password)
+	def self.authenticate(login, password)
+		#m = Member.find_by_login(login)
+		#!m.nil? && m.password == Member.encrypt_password(password)
+		Member.find_by_login_and_password(login, Member.encrypt_password(password))
 	end
 
 end

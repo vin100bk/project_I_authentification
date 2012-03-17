@@ -17,10 +17,6 @@ describe 'The Authentification App' do
 	
 	describe "Check available get pages" do
 
-		it "test" do
-			get '/', {}, 'rack.session' => {:user =>'1234'}
-		end
-
 		it "Index" do
 			get '/'
 			last_response.should be_ok
@@ -70,57 +66,61 @@ describe 'The Authentification App' do
 			@m.stub(:token=).and_return('random_token')
 		end
 		
-		it "Should authenticate with success" do
-			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(@m)
-			post '/sessions', @params
+		context "With right authentification information" do
+		
+			before do
+				Member.should_receive(:authenticate).with('Vin100', 'Password').and_return(@m)
+			end
+		
+			it "Should authenticate with success" do
+				post '/sessions', @params
 			
-			# If redirect : authentification sucessful
-			last_response.should be_redirect
-			follow_redirect!
-			last_request.path.should == '/'
-		end
+				# If redirect : authentification sucessful
+				last_response.should be_redirect
+				follow_redirect!
+				last_request.path.should == '/'
+			end
 		
-		it "Should register the login into session with a successful authentification" do
-			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(@m)
-			post '/sessions', @params, 'rack.session' => @sessions
-			follow_redirect!
-			@sessions[:current_user].should == 'Vin100'
-		end
+			it "Should register the login into session" do
+				post '/sessions', @params, 'rack.session' => @sessions
+				follow_redirect!
+				@sessions[:current_user].should == 'Vin100'
+			end
 		
-		it "Should register a token into a cookie after a successful authentification" do
-			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(@m)
-			Token.should_receive(:generate).and_return('random_token')
-			post '/sessions', @params
+			it "Should register a token into a cookie" do
+				Token.should_receive(:generate).at_least(1).and_return('random_token')
+				post '/sessions', @params, 'rack.session' => @sessions
 			
-			follow_redirect!
-			last_request.cookies['token'].nil?.should be_false
-			last_request.cookies['token'].should == 'random_token'
-		end
-	
-		it "Should call authenticate method" do
-			Member.should_receive(:authenticate?).at_least(1).with('Vin100', 'Password')
-			post '/sessions', @params
-		end
-		
-		it "Should not authenticate with success" do
-			post '/sessions', @params
-			last_response.should be_ok	# If there is not redirection, authenticate failed
-		end
-		
-		it "Session should not exists" do
-			post '/sessions', @params
-			last_response.body.include?('The account with the username').should be_true
-		end
-		
-		it "Session should exists but with a wrong password" do
-			m = double(Member)
-			m.stub(:login).and_return('Vin100')
-			m.stub(:password).and_return('14ca9f63103e4c9ac356797bb6d1c76a51e91071')	# Value : My_password
+				follow_redirect!
+				last_request.cookies['token'].nil?.should be_false
+				last_request.cookies['token'].should == 'random_token'
+			end
 			
-			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(m)
+		end
+		
+		context "With wrong authentification information" do
+		
+			before do
+				Member.should_receive(:authenticate).with('Vin100', 'Password').and_return(nil)
+			end
+		
+			it "Should not authenticate with success" do
+				post '/sessions', @params
+				last_response.should be_ok	# If there is not redirection, authenticate failed
+			end
+		
+			it "Session should not exists" do
+				post '/sessions', @params
+				last_response.body.include?('The account with the username').should be_true
+			end
+		
+			it "Session should exists but with a wrong password" do
+				Member.should_receive(:find_by_login).with('Vin100').and_return(double(Member))
 			
-			post '/sessions', @params
-			last_response.body.include?('The password does not match with the username').should be_true
+				post '/sessions', @params
+				last_response.body.include?('The password does not match with the username').should be_true
+			end
+			
 		end
 		
 		describe "post '/App_name/sessions' (with an client application)" do
@@ -137,18 +137,10 @@ describe 'The Authentification App' do
 				
 				before do
 					Application.should_receive(:find_by_name).with('App_name').and_return(@app)
-				
-					Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(@m)
-				end
-			
-				it "Should be redirected to the origin url" do
-					post '/App_name/sessions', @params
-					last_response.should be_redirect
-					follow_redirect!
-					last_request.path.should == @params['origin']
+					Member.should_receive(:authenticate).with('Vin100', 'Password').and_return(@m)
 				end
 				
-				it "Should have to login in get parameters" do
+				it "Should have login in get parameters" do
 					post '/App_name/sessions', @params
 					
 					last_response.should be_redirect
@@ -162,6 +154,14 @@ describe 'The Authentification App' do
 					last_response.should be_redirect
 					follow_redirect!
 					last_request.params['token'].should == Digest::SHA1.hexdigest('random_tokenVin100')
+				end
+				
+				it "Should be redirected to the origin url" do
+					post '/App_name/sessions', @params
+					last_response.should be_redirect
+					follow_redirect!
+					last_request.url.should == 'http://www.google.fr/protected?login=Vin100&token=' + Digest::SHA1.hexdigest('random_tokenVin100')
+					last_request.path.should == '/protected'
 				end
 				
 			end
@@ -273,6 +273,8 @@ describe 'The Authentification App' do
 		
 		before do
 			@sessions[:current_user] = 'Vin100'
+			@current_user = Member.new
+			@current_user.stub(:id).and_return(1)
 		end
 		
 		describe "get '/sessions/logout'" do
@@ -291,9 +293,7 @@ describe 'The Authentification App' do
 		describe "get '/sessions/destroy'" do
 		
 			it "Should delete the account of the current user" do
-				m = double(Member)
-				m.stub(:id).and_return(1)
-				Member.should_receive(:find_by_login).with('Vin100').and_return(m)
+				Member.should_receive(:find_by_login).with('Vin100').and_return(@current_user)
 				Member.should_receive(:delete).with(1)
 				get '/sessions/destroy', {}, 'rack.session' => @sessions
 				last_response.should be_redirect
@@ -320,11 +320,7 @@ describe 'The Authentification App' do
 			end
 			
 			it "Should add the application with success" do
-				a = Application.new
-				a.member = Member.new
-				a.stub(:member=).and_return(Member.new)
-				Application.should_receive(:new).and_return(a)
-			
+				Member.should_receive(:find_by_login).with('Vin100').and_return(@current_user)
 				post '/applications', @params, 'rack.session' => @sessions
 				last_response.should be_redirect
 			end
@@ -346,9 +342,7 @@ describe 'The Authentification App' do
 		describe "get '/applications/destroy/10'" do
 		
 			before do
-				m = double(Member)
-				m.stub(:id).and_return(1)
-				Member.should_receive(:find_by_login).with('Vin100').and_return(m)
+				Member.should_receive(:find_by_login).with('Vin100').and_return(@current_user)
 			end
 		
 			it "Should delete the application" do

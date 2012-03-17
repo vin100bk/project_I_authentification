@@ -146,6 +146,21 @@ describe Member do
 	
 	end
 	
+	describe "connect()" do
+	
+		it "Should save a token and return the login" do
+			Token.should_receive(:generate).and_return('random_token')
+			m = Member.new
+			m.login = "my_member"
+			m.password = "the_pw"
+			m.password_confirmation = "the_pw"
+			
+			m.connect.should == 'my_member'
+			m.token.should == 'random_token'
+		end
+	
+	end
+	
 	describe "Member::encrypt_password(password)" do
 	
 		it "Should return the rigth hash" do
@@ -154,22 +169,22 @@ describe Member do
 	
 	end
 	
-	describe "Member::authenticate?(login, password)" do
+	describe "Member::authenticate(login, password)" do
 	
 		before do
 			@m = double(Member)
 			@m.stub(:login).and_return('Vin100')
-			@m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')	# Password
+			@m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')
 		end
 		
 		it "Should authenticate with success" do
-			Member.should_receive(:find_by_login).with('Vin100').and_return(@m)
-			Member.authenticate?('Vin100', 'Password').should be_true
+			Member.should_receive(:find_by_login_and_password).with('Vin100', '8be3c943b1609fffbfc51aad666d0a04adf83c9d').and_return(@m)
+			Member.authenticate('Vin100', 'Password').should == @m
 		end
 	
 		it "Should not authenticate with success" do
-			Member.should_receive(:find_by_login).with('Vin100').and_return(@m)
-			Member.authenticate?('Vin100', 'password').should be_false
+			Member.should_receive(:find_by_login_and_password).with('Vin100', '8be3c943b1609fffbfc51aad666d0a04adf83c9d').and_return(nil)
+			Member.authenticate('Vin100', 'Password').should be_nil
 		end
 	
 	end
