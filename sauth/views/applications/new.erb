@@ -19,7 +19,7 @@
 		<div class="bloc">
 			<h2>Add an application</h2>
 		
-			<form method="post" action="/application/new">
+			<form method="post" action="/applications">
 				<div class="field<%= is_field_error(@error_registration_application, :name) %>">
 					<%= get_field_error_message(@error_registration_application, :name) %>
 					<label for="label_name">Name :</label>

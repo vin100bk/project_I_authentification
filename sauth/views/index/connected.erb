@@ -15,7 +15,7 @@
 			<%= @flash %>
 		<% end %>
 	
-		<p><span class="right"><a href="session/logout">Logout</a> | <a href="/session/destroy">Destroy his account</a></span>Welcome <strong><%= current_username %></strong>. This is your account page configuration.</p>
+		<p><span class="right"><a href="sessions/logout">Logout</a> | <a href="/sessions/destroy">Destroy his account</a></span>Welcome <strong><%= current_username %></strong>. This is your account page configuration.</p>
 	
 		<div class="bloc">
 			<h2>Applications which use your account</h2>
@@ -41,7 +41,7 @@
 				<ul class="list">
 					<% @user_applications.each do |app| %>
 						<li>
-							<span class="right"><a href="/application/destroy/<%= app.id %>" onclick="return(confirm('Do you want to delete the application <%= app.name %> ?'));">Delete</a></span>
+							<span class="right"><a href="/applications/destroy/<%= app.id %>" onclick="return(confirm('Do you want to delete the application <%= app.name %> ?'));">Delete</a></span>
 							<a href="<%= app.url %>"><%= app.name %></a> <em>Copy/Paste the code bellow in your private section :</em>
 							<span class="code">
 								if !session[:current_user_<%= app.name %>].nil? || (!params['token'].nil? && !params['login'].nil? && params['token'] == Digest::SHA1.hexdigest('<%= app.token %>' + params['login']))<br />
@@ -61,7 +61,7 @@
 				</ul>	
 			<% end %>
 		
-			<p class="msg2"><a href="/application/new">Add an application</a></p>
+			<p class="msg2"><a href="/applications/new">Add an application</a></p>
 		</div>
 		
 	</div>

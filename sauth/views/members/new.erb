@@ -19,7 +19,7 @@
 		<div class="bloc">
 			<h2>Inscription</h2>
 		
-			<form method="post" action="/register/new">
+			<form method="post" action="/members">
 				<div class="field<%= is_field_error(@error_register, :login) %>">
 					<%= get_field_error_message(@error_register, :login) %>
 					<label for="label_login">Username :</label>

@@ -114,7 +114,7 @@ get '/members/new/?' do
 	if connected?
 		redirect '/'
 	else
-		erb :"register/form"
+		erb :"members/new"
 	end
 end
 
@@ -134,7 +134,7 @@ post '/members/?' do
 			redirect '/'
 		else
 			@error_register = m.errors.messages
-			erb :"register/form"
+			erb :"members/new"
 		end
 	end
 end
@@ -148,7 +148,7 @@ get '/?:app_name?/sessions/new/?' do
 	elsif connected?
 		redirect Application.get_redirect_url(app, params['origin'], current_user)
 	else
-		erb :"session/form"
+		erb :"sessions/new"
 	end
 end
 
@@ -175,7 +175,7 @@ post '/?:app_name?/sessions/?' do
 				@error_session_message = :session_failed
 			end
 			
-			erb :"session/form"
+			erb :"sessions/new"
 		end
 	end
 end
@@ -185,7 +185,7 @@ get '/applications/new/?' do
 	if !connected?
 		redirect '/'
 	else
-		erb :"application/form"
+		erb :"applications/new"
 	end
 end
 
@@ -208,7 +208,7 @@ post '/applications/?' do
 		else
 			# No valid application
 			@error_registration_application = a.errors.messages
-			erb :"application/form"
+			erb :"applications/new"
 		end
 	end
 end

@@ -15,7 +15,7 @@
 		<% else %>
 			<p class="error">Error while logging :<br />
 			<% if @error_session_message == :session_not_exists %>
-				The account with the username <strong><%= params['login'] %></strong> does not exist. <a href="/register/new">Click here to register you</a>.
+				The account with the username <strong><%= params['login'] %></strong> does not exist. <a href="/members/new">Click here to register you</a>.
 			<% else %>
 				The password does not match with the username <strong><%= params['login'] %></strong>
 			<% end %>
@@ -25,7 +25,7 @@
 		<div class="bloc">
 			<h2>Log in</h2>
 		
-			<form method="post" action="<%= '/' + params['app_name'] unless params['app_name'].nil? %>/session/new">
+			<form method="post" action="<%= '/' + params['app_name'] unless params['app_name'].nil? %>/sessions">
 				<div class="field">
 					<label for="label_login">Username :</label>
 					<input type="text" name="login" id="label_login" placeholder="Login" required />
