@@ -19,7 +19,12 @@ set :public_folder, File.dirname(__FILE__) + '/www'
 # Specify the port application
 set :port, 9090
 
-enable :sessions unless ENV['RACK_ENV'] == 'test'
+unless ENV['RACK_ENV'] == 'test'
+	use Rack::Session::Cookie,
+		:key => 'rack.session',
+		:path => '/',
+		:expire_after => 600	# 10 minutes
+end	
 
 helpers do
 	
