@@ -21,22 +21,22 @@ describe 'The Authentification App' do
 		end 
 		
 		it "Register form" do
-			get '/register/new'
+			get '/members/new'
 			last_response.should be_ok
 		end
 		
 		it "Connexion form" do
-			get '/session/new'
+			get '/sessions/new'
 			last_response.should be_ok
 		end
 		
 		it "Registration application form" do
-			get '/application/new'
+			get '/applications/new'
 			last_response.should be_redirect
 		end
 		
 		it "Connexion form should be redirected with a non existing application" do
-			get '/Test/session/new'
+			get '/Test/sessions/new'
 			last_response.should be_redirect
 			follow_redirect!
 			last_request.path.should == '/'
@@ -44,13 +44,13 @@ describe 'The Authentification App' do
 		
 		it "Connexion form should be displayed with an existing application" do
 			Application.should_receive(:find_by_name).with('Test').and_return(double(Application))
-			get '/Test/session/new'
+			get '/Test/sessions/new'
 			last_response.should be_ok
 		end
 		
 	end
 	
-	describe "post '/session/new'" do
+	describe "post '/sessions'" do
 	
 		before do
 			@params = {
@@ -67,7 +67,7 @@ describe 'The Authentification App' do
 		
 		it "Should authenticate with success" do
 			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(@m)
-			post '/session/new', @params
+			post '/sessions', @params
 			
 			# If redirect : authentification sucessful
 			last_response.should be_redirect
@@ -77,7 +77,7 @@ describe 'The Authentification App' do
 		
 		it "Should register the login into session with a successful authentification" do
 			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(@m)
-			post '/session/new', @params
+			post '/sessions', @params
 			
 			follow_redirect!
 			last_request.env['rack.session']['current_user'].should == 'Vin100'
@@ -86,7 +86,7 @@ describe 'The Authentification App' do
 		it "Should register a token into a cookie after a successful authentification" do
 			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(@m)
 			Token.should_receive(:generate).and_return('random_token')
-			post '/session/new', @params
+			post '/sessions', @params
 			
 			follow_redirect!
 			last_request.cookies['token'].nil?.should be_false
@@ -95,16 +95,16 @@ describe 'The Authentification App' do
 	
 		it "Should call authenticate method" do
 			Member.should_receive(:authenticate?).at_least(1).with('Vin100', 'Password')
-			post '/session/new', @params
+			post '/sessions', @params
 		end
 		
 		it "Should not authenticate with success" do
-			post '/session/new', @params
+			post '/sessions', @params
 			last_response.should be_ok	# If there is not redirection, authenticate failed
 		end
 		
 		it "Session should not exists" do
-			post '/session/new', @params
+			post '/sessions', @params
 			last_response.body.include?('The account with the username').should be_true
 		end
 		
@@ -115,11 +115,11 @@ describe 'The Authentification App' do
 			
 			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(m)
 			
-			post '/session/new', @params
+			post '/sessions', @params
 			last_response.body.include?('The password does not match with the username').should be_true
 		end
 		
-		describe "post '/App_name/session/new' (with an client application)" do
+		describe "post '/App_name/sessions' (with an client application)" do
 		
 			before do
 				@app = double(Application)
@@ -144,14 +144,14 @@ describe 'The Authentification App' do
 				end
 			
 				it "Should be redirected to the origin url" do
-					post '/App_name/session/new', @params
+					post '/App_name/sessions', @params
 					last_response.should be_redirect
 					follow_redirect!
 					last_request.path.should == @params['origin']
 				end
 				
 				it "Should have to login in get parameters" do
-					post '/App_name/session/new', @params
+					post '/App_name/sessions', @params
 					
 					last_response.should be_redirect
 					follow_redirect!
@@ -159,7 +159,7 @@ describe 'The Authentification App' do
 				end
 				
 				it "Should have the right token in get parameters" do
-					post '/App_name/session/new', @params
+					post '/App_name/sessions', @params
 
 					last_response.should be_redirect
 					follow_redirect!
@@ -175,14 +175,14 @@ describe 'The Authentification App' do
 				end
 			
 				it "Should be redirected to '/'" do
-					post '/App_name/session/new', @params
+					post '/App_name/sessions', @params
 					last_response.should be_redirect
 					follow_redirect!
 					last_request.path.should == '/'
 				end
 				
 				it "Should display an error message" do
-					post '/App_name/session/new', @params
+					post '/App_name/sessions', @params
 					last_response.should be_redirect
 					follow_redirect!
 					last_response.body.include?('<p class="error">The application which you want to access does not exist.</p>').should be_true
@@ -194,7 +194,7 @@ describe 'The Authentification App' do
 	
 	end
 	
-	describe "post '/register/new'" do
+	describe "post '/members'" do
 		
 		before(:each) do
 			@params = {
@@ -214,7 +214,7 @@ describe 'The Authentification App' do
 		end
 		
 		it "Should register with success" do
-			post '/register/new', @params
+			post '/members', @params
 			
 			# If redirect : authentification sucessful
 			last_response.should be_redirect
@@ -223,7 +223,7 @@ describe 'The Authentification App' do
 		end
 		
 		it "Should register the login into session with a successful registration" do
-			post '/register/new', @params
+			post '/members', @params
 			
 			follow_redirect!
 			last_request.env['rack.session']['current_user'].should == 'Vin100'
@@ -231,7 +231,7 @@ describe 'The Authentification App' do
 		
 		it "Should register a token into a cookie after a successful registration" do
 			Token.should_receive(:generate).and_return('random_token')
-			post '/register/new', @params
+			post '/members', @params
 			
 			follow_redirect!
 			last_request.cookies['token'].nil?.should be_false
@@ -241,7 +241,7 @@ describe 'The Authentification App' do
 		it "Should not register with success (ugly login). Other tests available for validators in member_spec.rb" do
 			@params['login'] = 'vin@@100'
 			
-			post '/register/new', @params
+			post '/members', @params
 			last_response.should be_ok	# If there is not redirection, error while registring
 		end
 		
@@ -295,14 +295,14 @@ describe 'The Authentification App' do
 			m.stub(:token=)
 			m.stub(:save)
 			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(m)
-			post '/session/new', params
+			post '/sessions', params
 			follow_redirect!
 		end
 		
-		describe "get '/session/logout'" do
+		describe "get '/sessions/logout'" do
 			
 			it "Should not have session and cookie after logout" do
-				get '/session/logout'
+				get '/sessions/logout'
 				last_response.should be_redirect
 				follow_redirect!
 				last_request.path.should == '/'
@@ -312,11 +312,11 @@ describe 'The Authentification App' do
 			
 		end
 		
-		describe "get '/session/destroy'" do
+		describe "get '/sessions/destroy'" do
 		
 			it "Should delete the account of the current user" do
 				Member.should_receive(:delete).with(1)
-				get '/session/destroy'
+				get '/sessions/destroy'
 				last_response.should be_redirect
 				follow_redirect!
 				last_request.path.should == '/'
@@ -326,7 +326,7 @@ describe 'The Authentification App' do
 		
 		end
 		
-		describe "post '/application/new'" do
+		describe "post '/applications'" do
 		
 			before do
 				@params = {
@@ -344,7 +344,7 @@ describe 'The Authentification App' do
 			end
 		
 			it "Registration application form" do
-				get '/application/new'
+				get '/applications/new'
 				last_response.should be_ok
 			end
 			
@@ -354,7 +354,7 @@ describe 'The Authentification App' do
 				a.stub(:member=).and_return(Member.new)
 				Application.should_receive(:new).and_return(a)
 			
-				post '/application/new', @params
+				post '/applications', @params
 				last_response.should be_redirect
 			end
 			
@@ -366,24 +366,24 @@ describe 'The Authentification App' do
 				a.stub(:member=).and_return(Member.new)
 				Application.should_receive(:new).and_return(a)
 			
-				post '/application/new', @params
+				post '/applications', @params
 				last_response.should be_ok	# If there is not redirection, error while adding
 			end
 			
 		end
 		
-		describe "get '/application/destroy/10'" do
+		describe "get '/applications/destroy/10'" do
 		
 			it "Should delete the application" do
 				Application.should_receive(:find_by_id).with(10, :conditions => {:member_id => 1}).and_return(double(Application))
 				Application.should_receive(:delete).with(10)
-				get '/application/destroy/10'
+				get '/applications/destroy/10'
 				last_response.body.include?('<p class="validation">The application has been deleted with success.</p>')
 			end
 			
 			it "Should not delete a non existing application" do
 				Application.should_receive(:find_by_id).with(10, :conditions => {:member_id => 1}).and_return(nil)
-				get '/application/destroy/10'
+				get '/applications/destroy/10'
 				last_response.body.include?('<p class="error">The application you want to delete does not exist.</p>')
 			end
 		

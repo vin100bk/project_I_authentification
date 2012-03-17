@@ -108,7 +108,7 @@ get '/' do
 end
 
 # Register form
-get '/register/new/?' do
+get '/members/new/?' do
 	if connected?
 		redirect '/'
 	else
@@ -117,7 +117,7 @@ get '/register/new/?' do
 end
 
 # Register validation
-post '/register/new/?' do
+post '/members/?' do
 	if connected?
 		redirect '/'
 	else
@@ -138,7 +138,7 @@ post '/register/new/?' do
 end
 
 # Authentification form
-get '/?:app_name?/session/new/?' do
+get '/?:app_name?/sessions/new/?' do
 	app = Application.find_by_name(params['app_name'])
 	if !params['app_name'].nil? && app.nil?
 		session[:flash] = '<p class="error">The application which you want to access does not exist.</p>'
@@ -151,7 +151,7 @@ get '/?:app_name?/session/new/?' do
 end
 
 # Authentification validation
-post '/?:app_name?/session/new/?' do
+post '/?:app_name?/sessions/?' do
 	app = Application.find_by_name(params['app_name'])
 	if !params['app_name'].nil? && app.nil?
 		session[:flash] = '<p class="error">The application which you want to access does not exist.</p>'
@@ -179,7 +179,7 @@ post '/?:app_name?/session/new/?' do
 end
 
 # Register application form
-get '/application/new/?' do
+get '/applications/new/?' do
 	if !connected?
 		redirect '/'
 	else
@@ -188,7 +188,7 @@ get '/application/new/?' do
 end
 
 # Register an application
-post '/application/new/?' do
+post '/applications/?' do
 	if !connected?
 		redirect '/'
 	else
@@ -212,7 +212,7 @@ post '/application/new/?' do
 end
 
 # Delete an application
-get '/application/destroy/:app_id/?' do
+get '/applications/destroy/:app_id/?' do
 	if !connected?
 		redirect '/'
 	else
@@ -231,13 +231,13 @@ get '/application/destroy/:app_id/?' do
 end
 
 # Logout
-get '/session/logout/?' do
+get '/sessions/logout/?' do
 	logout
 	redirect '/'
 end
 
 # Destroy his account
-get '/session/destroy/?' do
+get '/sessions/destroy/?' do
 	Member.delete(current_user.id)
 	logout
 	redirect '/'
