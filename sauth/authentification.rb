@@ -19,7 +19,7 @@ set :public_folder, File.dirname(__FILE__) + '/www'
 # Specify the port application
 set :port, 9090
 
-enable :sessions
+enable :sessions unless ENV['RACK_ENV'] == 'test'
 
 helpers do
 	

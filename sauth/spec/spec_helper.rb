@@ -1,7 +1,7 @@
 ENV['RACK_ENV'] = 'test'
 
-require 'authentification'
 require 'rack/test'
+require 'authentification'
 
 module Spec_methods
 
@@ -9,6 +9,8 @@ module Spec_methods
 		Application.destroy_all
 		Member.destroy_all
 		Utilisation.destroy_all
+		
+		@sessions = {}
 	end
 	
 end

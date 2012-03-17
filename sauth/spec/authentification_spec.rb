@@ -17,6 +17,10 @@ describe 'The Authentification App' do
 	
 	describe "Check available get pages" do
 
+		it "test" do
+			get '/', {}, 'rack.session' => {:user =>'1234'}
+		end
+
 		it "Index" do
 			get '/'
 			last_response.should be_ok
@@ -78,10 +82,9 @@ describe 'The Authentification App' do
 		
 		it "Should register the login into session with a successful authentification" do
 			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(@m)
-			post '/sessions', @params
-			
+			post '/sessions', @params, 'rack.session' => @sessions
 			follow_redirect!
-			last_request.env['rack.session']['current_user'].should == 'Vin100'
+			@sessions[:current_user].should == 'Vin100'
 		end
 		
 		it "Should register a token into a cookie after a successful authentification" do
@@ -177,10 +180,10 @@ describe 'The Authentification App' do
 				end
 				
 				it "Should display an error message" do
-					post '/App_name/sessions', @params
+					post '/App_name/sessions', @params, 'rack.session' => @sessions
 					last_response.should be_redirect
 					follow_redirect!
-					last_response.body.include?('<p class="error">The application which you want to access does not exist.</p>').should be_true
+					@sessions[:flash].should == '<p class="error">The application which you want to access does not exist.</p>'
 				end
 				
 			end
@@ -209,15 +212,15 @@ describe 'The Authentification App' do
 		end
 		
 		it "Should register the login into session with a successful registration" do
-			post '/members', @params
+			post '/members', @params, 'rack.session' => @sessions
 			
 			follow_redirect!
-			last_request.env['rack.session']['current_user'].should == 'Vin100'
+			@sessions[:current_user].should == 'Vin100'
 		end
 		
 		it "Should register a token into a cookie after a successful registration" do
-			Token.should_receive(:generate).and_return('random_token')
-			post '/members', @params
+			Token.should_receive(:generate).at_least(1).and_return('random_token')
+			post '/members', @params, 'rack.session' => @sessions
 			
 			follow_redirect!
 			last_request.cookies['token'].nil?.should be_false
@@ -249,9 +252,9 @@ describe 'The Authentification App' do
 			Member.should_receive(:find_by_token).with('random_token').and_return(m)
 			Token.should_receive(:generate).and_return('other_token')
 			
-			get '/'
+			get '/', {}, 'rack.session' => @sessions
 			last_request.cookies['token'].should == 'random_token'
-			last_request.env['rack.session']['current_user'].should == 'Name'
+			@sessions[:current_user].should == 'Name'
 		end
 		
 		it "Should not be connected with a wrong cookie" do
@@ -267,31 +270,19 @@ describe 'The Authentification App' do
 	end
 	
 	describe "Tests as connected member" do
-	
+		
 		before do
-			# Execute an authentification (cannot create session in tests ...)
-			params = {
-				'login' => 'Vin100',
-				'password' => 'Password'
-			}
-			m = Member.new
-			m.stub(:id).and_return(1)
-			m.stub(:login).and_return('Vin100')
-			m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')
-			m.stub(:token=)
-			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(m)
-			post '/sessions', params
-			follow_redirect!
+			@sessions[:current_user] = 'Vin100'
 		end
 		
 		describe "get '/sessions/logout'" do
 			
 			it "Should not have session and cookie after logout" do
-				get '/sessions/logout'
+				get '/sessions/logout', {}, 'rack.session' => @sessions
 				last_response.should be_redirect
 				follow_redirect!
 				last_request.path.should == '/'
-				last_request.env['rack.session']['current_user'].should be_nil
+				@sessions[:current_user].should be_nil
 				last_request.cookies['token'].should be_nil
 			end
 			
@@ -300,12 +291,15 @@ describe 'The Authentification App' do
 		describe "get '/sessions/destroy'" do
 		
 			it "Should delete the account of the current user" do
+				m = double(Member)
+				m.stub(:id).and_return(1)
+				Member.should_receive(:find_by_login).with('Vin100').and_return(m)
 				Member.should_receive(:delete).with(1)
-				get '/sessions/destroy'
+				get '/sessions/destroy', {}, 'rack.session' => @sessions
 				last_response.should be_redirect
 				follow_redirect!
 				last_request.path.should == '/'
-				last_request.env['rack.session']['current_user'].should be_nil
+				@sessions[:current_user].should be_nil
 				last_request.cookies['token'].should be_nil
 			end
 		
@@ -321,7 +315,7 @@ describe 'The Authentification App' do
 			end
 		
 			it "Registration application form" do
-				get '/applications/new'
+				get '/applications/new', {}, 'rack.session' => @sessions
 				last_response.should be_ok
 			end
 			
@@ -331,7 +325,7 @@ describe 'The Authentification App' do
 				a.stub(:member=).and_return(Member.new)
 				Application.should_receive(:new).and_return(a)
 			
-				post '/applications', @params
+				post '/applications', @params, 'rack.session' => @sessions
 				last_response.should be_redirect
 			end
 			
@@ -343,7 +337,7 @@ describe 'The Authentification App' do
 				a.stub(:member=).and_return(Member.new)
 				Application.should_receive(:new).and_return(a)
 			
-				post '/applications', @params
+				post '/applications', @params, 'rack.session' => @sessions
 				last_response.should be_ok	# If there is not redirection, error while adding
 			end
 			
@@ -351,16 +345,22 @@ describe 'The Authentification App' do
 		
 		describe "get '/applications/destroy/10'" do
 		
+			before do
+				m = double(Member)
+				m.stub(:id).and_return(1)
+				Member.should_receive(:find_by_login).with('Vin100').and_return(m)
+			end
+		
 			it "Should delete the application" do
 				Application.should_receive(:find_by_id).with(10, :conditions => {:member_id => 1}).and_return(double(Application))
 				Application.should_receive(:delete).with(10)
-				get '/applications/destroy/10'
+				get '/applications/destroy/10', {}, 'rack.session' => @sessions
 				last_response.body.include?('<p class="validation">The application has been deleted with success.</p>')
 			end
 			
 			it "Should not delete a non existing application" do
 				Application.should_receive(:find_by_id).with(10, :conditions => {:member_id => 1}).and_return(nil)
-				get '/applications/destroy/10'
+				get '/applications/destroy/10', {}, 'rack.session' => @sessions
 				last_response.body.include?('<p class="error">The application you want to delete does not exist.</p>')
 			end
 		
