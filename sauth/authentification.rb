@@ -9,8 +9,10 @@ require 'lib/application'
 require 'lib/utilisation'
 require 'lib/token'
 
+ENV['RACK_ENV'] ||= 'development'
+
 # Database
-ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :database => File.join(File.dirname(__FILE__), 'db', 'authentification.sqlite3'))
+require 'db/db'
 
 # Specify public dir
 set :public_folder, File.dirname(__FILE__) + '/www'

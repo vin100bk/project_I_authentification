@@ -1,8 +1,14 @@
 $: << File.join(File.dirname(__FILE__), '..', '..')
 
-require 'authentification'
+require 'spec/spec_helper'
 
 describe Application do
+
+	include Spec_methods
+
+	before do
+		before
+	end
 
 	describe "Check an application valid" do
 		
@@ -116,7 +122,6 @@ describe Application do
 			a2.member = Member.new
 			
 			a2.valid?
-			Application.delete(a1.id)
 			a2.errors.messages[:name].include?("has already been taken").should be_true
 		end
 		
@@ -151,11 +156,6 @@ describe Application do
 				a2.save!
 			
 				Application.get_applications('User').length.should == 2
-			
-				# Delete records saved
-				Member.delete(m.id)
-				Application.delete(a1.id)
-				Application.delete(a2.id)
 			end
 		end
 	end
@@ -191,14 +191,6 @@ describe Application do
 			@u2.member = @m2
 			@u2.save!
 		end
-		
-		after do
-			Member.delete(@m1.id)
-			Member.delete(@m2.id)
-			Application.delete(@a.id)
-			Utilisation.delete(@u1.id)
-			Utilisation.delete(@u2.id)
-		end
 	
 		it "Should delete the application" do
 			Application.delete(Application.find_by_name('My_app1').id)
@@ -206,6 +198,7 @@ describe Application do
 		end
 		
 		it "Should delete the utilisations associated to the application" do
+			Utilisation.should_receive(:delete_all).with('application_id = ' + @a.id.to_s)
 			Application.delete(Application.find_by_name('My_app1').id)
 			Utilisation.find_all_by_application_id(Application.find_by_name('My_app1')).should be_empty
 		end

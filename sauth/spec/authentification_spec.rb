@@ -1,16 +1,18 @@
 $: << File.join(File.dirname(__FILE__), '..')
 
-require 'authentification'
-require 'rack/test'
-
-set :sessions, true
+require 'spec/spec_helper'
 
 describe 'The Authentification App' do
 
 	include Rack::Test::Methods
+	include Spec_methods
 
 	def app
 		Sinatra::Application
+	end
+	
+	before do
+		before
 	end
 	
 	describe "Check available get pages" do
@@ -58,11 +60,10 @@ describe 'The Authentification App' do
 				'password' => 'Password'
 			}
 			
-			@m = double(Member)
+			@m = Member.new
 			@m.stub(:login).and_return('Vin100')
 			@m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')
 			@m.stub(:token=).and_return('random_token')
-			@m.stub(:save)
 		end
 		
 		it "Should authenticate with success" do
@@ -122,7 +123,7 @@ describe 'The Authentification App' do
 		describe "post '/App_name/sessions' (with an client application)" do
 		
 			before do
-				@app = double(Application)
+				@app = Application.new
 				@app.stub(:url).and_return('http://www.google.fr')
 				@app.stub(:token).and_return('random_token')
 				
@@ -135,12 +136,6 @@ describe 'The Authentification App' do
 					Application.should_receive(:find_by_name).with('App_name').and_return(@app)
 				
 					Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(@m)
-				
-					u = double(Utilisation)
-					u.stub(:application=)
-					u.stub(:member=)
-					u.stub(:save)
-					Utilisation.should_receive(:new).and_return(u)
 				end
 			
 				it "Should be redirected to the origin url" do
@@ -204,15 +199,6 @@ describe 'The Authentification App' do
 			}
 		end
 		
-		# Delete the member saved if existing
-		after(:each) do
-			m = Member.find_by_login('Vin100')
-			
-			unless m.nil?
-				Member.delete(m.id)
-			end
-		end
-		
 		it "Should register with success" do
 			post '/members', @params
 			
@@ -257,7 +243,7 @@ describe 'The Authentification App' do
 			# Set cookie
 			set_cookie 'token=random_token'
 			
-			m = double(Member)
+			m = Member.new
 			m.stub(:login).and_return('Name')
 			
 			Member.should_receive(:find_by_token).with('random_token').and_return(m)
@@ -288,12 +274,11 @@ describe 'The Authentification App' do
 				'login' => 'Vin100',
 				'password' => 'Password'
 			}
-			m = double(Member)
+			m = Member.new
 			m.stub(:id).and_return(1)
 			m.stub(:login).and_return('Vin100')
 			m.stub(:password).and_return('8be3c943b1609fffbfc51aad666d0a04adf83c9d')
 			m.stub(:token=)
-			m.stub(:save)
 			Member.should_receive(:find_by_login).at_least(1).with('Vin100').and_return(m)
 			post '/sessions', params
 			follow_redirect!
@@ -333,14 +318,6 @@ describe 'The Authentification App' do
 					'name' => 'App1',
 					'url' => 'http://www.app1.com'
 				}
-			end
-			
-			after(:each) do
-				a = Application.find_by_name(@params['name'])
-			
-				unless a.nil?
-					Application.delete(a.id)
-				end
 			end
 		
 			it "Registration application form" do

@@ -1,9 +1,14 @@
 $: << File.join(File.dirname(__FILE__), '..', '..')
 
-require 'authentification'
-require 'lib/member'
+require_relative '../spec_helper'
 
 describe Member do
+
+	include Spec_methods
+	
+	before do
+		before
+	end
 
 	describe "Check a valid member" do
 		
@@ -108,7 +113,6 @@ describe Member do
 			m2.password_confirmation = "pw"
 			
 			m2.valid?
-			Member.delete(m1.id)
 			m2.errors.messages[:login].include?("has already been taken").should be_true
 		end
 	

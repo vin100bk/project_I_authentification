@@ -1,8 +1,10 @@
 $: << File.join(File.dirname(__FILE__), '..', '..')
 
-require 'authentification'
+require_relative '../spec_helper'
 
 describe Token do
+
+	include Spec_methods
 
 	describe "Token::generate" do
 		

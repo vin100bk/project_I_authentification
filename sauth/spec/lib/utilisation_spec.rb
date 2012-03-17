@@ -1,8 +1,14 @@
 $: << File.join(File.dirname(__FILE__), '..', '..')
 
-require 'authentification'
+require_relative '../spec_helper'
 
 describe Utilisation do
+
+	include Spec_methods
+	
+	before do
+		before
+	end
 
 	describe "Utilisation::get_utilisations(username)" do
 	
@@ -43,13 +49,6 @@ describe Utilisation do
 				u2.save!
 			
 				Utilisation.get_utilisations('User').length.should == 2
-				Utilisation.should_receive(:delete_all).with('application_id = ' + a1.id.to_s)
-				Utilisation.should_receive(:delete_all).with('application_id = ' + a2.id.to_s)
-			
-				# Delete records saved
-				Member.delete(m.id)
-				Application.delete(a1.id)
-				Application.delete(a2.id)
 			end
 		end	
 	end
