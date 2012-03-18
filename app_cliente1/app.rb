@@ -23,7 +23,7 @@ if !session[:current_user_App1].nil? || (!params['token'].nil? && !params['login
 elsif !params['token'].nil? && !params['login'].nil?
   # Access refused
   'You cannot access to this section !' else
-  redirect 'http://localhost:9090/App1/session/new?origin=' + request.path
+  redirect 'http://localhost:9090/App1/sessions/new?origin=' + request.path
 end 
 end
 
