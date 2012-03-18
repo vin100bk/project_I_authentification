@@ -1,0 +1,39 @@
+Le projet est découpé en 3 répertoires :
+ - sauth : le système d'authentification
+ - app_cliente1 : la première application cliente
+ - app_cliente2 : la deuxième application cliente
+
+Voici les commandes pour lancer les différentes applications :
+ - le système d'authentification
+	cd sauth
+	ruby authentification.rb
+	
+	L'application est disponible à l'adresse : localhost:9090
+	
+ - la première application cliente
+	cd app_cliente1
+	ruby app.rb
+
+	L'application est disponible à l'adresse : localhost:9191
+
+ - la deuxième application cliente
+	cd app_cliente2
+	ruby app.rb
+
+	L'application est disponible à l'adresse : localhost:9292
+ 
+De base (pour faciliter le test de l'application) un utilisateur et deux applications sont déjà présents dans la base de donnée.
+ - login : root
+ - password : test
+
+Les deux applications représentent celles rendues avec le projet (app_cliente1 et app_cliente2).
+
+Voici les commandes pour lancer les tests rspec :
+	cd sauth
+	rspec spec/* --format documentation
+
+Pour lancer les migrations (non nécessaire normalement, les fichiers sqlite3 sont déjà créés) :
+	cd sauth
+	ruby migration.rb
+	
+Cela va créer deux fichiers sqlite3 : un pour les tests rspec, un autre pour le test de l'application "en réel"
